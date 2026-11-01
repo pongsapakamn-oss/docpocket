@@ -60,7 +60,7 @@ const SC=[{k:'req',ti:'view',t:'ตรวจสอบ<br>คำขอ',i:'hist'}
 const KL={uploaded:['plus','อัปโหลดเอกสาร'],replaced:['refresh','เปลี่ยนภาพเอกสาร'],deleted:['trash','ลบเอกสาร'],viewed:['image','เปิดดูเอกสาร'],profile_updated:['user','อัปเดตโปรไฟล์'],login:['lock','เข้าสู่ระบบ'],copy_saved:['download','บันทึกสำเนาลายน้ำ']};
 const P={bell:'M5.5 17h13l-1.8-2.6V10.5a4.7 4.7 0 0 0-9.4 0v3.9zM10 20a2 2 0 0 0 4 0',chat:'M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-8l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM8 11h.01M12 11h.01M16 11h.01',home:'M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',doc:'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h4',
  scan:'M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8',hist:'M12 7v5l3 2M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5',
- set:'M4 8h9M17 8h3M4 16h3M11 16h9M15 5.5v5M9 13.5v5',power:'M12 3v8M7 6.6a8 8 0 1 0 10 0',
+ set:'M4 8h9M17 8h3M4 16h3M11 16h9M15 5.5v5M9 13.5v5',nhome:'M2.8 11.4L12 3.2l9.2 8.2M5.4 9.4V19.6a1.4 1.4 0 0 0 1.4 1.4h10.4a1.4 1.4 0 0 0 1.4-1.4V9.4M15.6 5.2V3.4h2.6v4.2M10.3 13.6a1.7 1.7 0 1 0 3.4 0a1.7 1.7 0 1 0-3.4 0M12 15.3v2.9',nscan:'M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7.4 12h.01M10.5 12h.01M13.5 12h.01M16.6 12h.01',power:'M12 3v8M7 6.6a8 8 0 1 0 10 0',
  user:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 4-6 8-6s8 2 8 6',exp:'M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7',
  flip:'M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5',x:'M6 6l12 12M18 6L6 18',chev:'M9 6l6 6-6 6',edit:'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
  camera:'M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM12 16.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z',
@@ -528,12 +528,15 @@ const waitLeft=()=>Math.max(0,Math.ceil(((ls(LF(),{}).until||0)-Date.now())/1000
 function failed(){const f=ls(LF(),{n:0,until:0});f.n=(f.n||0)+1;if(f.n%5===0)f.until=Date.now()+Math.min(900,30*2**(f.n/5-1))*1000;sv(LF(),f);return f}
 let L=null,lt;
 function lockShow(mode,o={}){L={mode,n:mode==='set'?CODE_LEN:((ls(LK(),null)||{}).n||6),buf:'',first:'',msg:'',cancel:!!o.cancel,done:o.done||(()=>{}),busy:false,forgot:false};$('#lock').classList.add('on');lockDraw()}
-function lockHide(){clearInterval(lt);L=null;const e=$('#lock');e.classList.remove('on','dim');e.innerHTML=''}
+function lockHide(){clearInterval(lt);L=null;const e=$('#lock');e.classList.remove('on','dim','still');delete e.dataset.sig;e.innerHTML=''}
 function lockDraw(){
   const T={unlock:'ระบุรหัสผ่าน',verify:'ระบุรหัสผ่าน',set:L.first?'ยืนยันรหัสอีกครั้ง':`ตั้งรหัสล็อก ${L.n} หลัก`}[L.mode];
   const w=waitLeft(),sub=L.msg||(L.mode==='set'&&!L.first?'หลีกเลี่ยงเลขซ้ำหรือเรียงกัน เช่น 00000000 หรือ 12345678':w?`ใส่รหัสผิดหลายครั้ง ลองใหม่ได้ในอีก ${w} วินาที`:''),bad=!!L.msg&&/ไม่ถูก|ไม่ตรง|เดาง่าย|ผิด/.test(L.msg);
-  if(L.forgot){$('#lock').innerHTML=`<div class="lkt">${LOGO(64)}</div><div class="pwb"><h2>ลืมรหัสล็อก?</h2><p class="ps">การออกจากระบบจะล้างรหัสล็อกบนเครื่องนี้ เอกสารของคุณยังอยู่ในบัญชี และต้องเข้าสู่ระบบด้วยรหัสผ่านบัญชีอีกครั้ง</p><button class="pc" data-act="lk-forgot-yes">ออกจากระบบและล้างรหัสล็อก</button><button class="pc" data-act="lk-forgot-no">กลับ</button></div>`;return}
-  const dim=L.mode!=='unlock';$('#lock').classList.toggle('dim',dim);
+  if(L.forgot){$('#lock').classList.add('still');delete $('#lock').dataset.sig;$('#lock').innerHTML=`<div class="lkt">${LOGO(64)}</div><div class="pwb"><h2>ลืมรหัสล็อก?</h2><p class="ps">การออกจากระบบจะล้างรหัสล็อกบนเครื่องนี้ เอกสารของคุณยังอยู่ในบัญชี และต้องเข้าสู่ระบบด้วยรหัสผ่านบัญชีอีกครั้ง</p><button class="pc" data-act="lk-forgot-yes">ออกจากระบบและล้างรหัสล็อก</button><button class="pc" data-act="lk-forgot-no">กลับ</button></div>`;return}
+  const dim=L.mode!=='unlock',lk=$('#lock'),sig=[L.mode,L.n,L.cancel,T,sub,bad].join('|');
+  // typing a digit only changes the dots: update them in place so the sheet never re-renders (re-rendering replayed the slide-up animation = the blinking)
+  if(lk.dataset.sig===sig&&lk.querySelector('.pwb .pwd')){const d=lk.querySelectorAll('.pwd span');d.forEach((x,i)=>x.classList.toggle('f',i<L.buf.length));lk.querySelector('.pwd').setAttribute('aria-label',`กรอกแล้ว ${L.buf.length} จาก ${L.n} หลัก`);clearInterval(lt);if(w)lt=setInterval(()=>{if(L&&!waitLeft()){clearInterval(lt);lockDraw()}else if(L)lockDraw()},1000);return}
+  lk.classList.toggle('still',!!lk.querySelector('.pwb'));lk.dataset.sig=sig;lk.classList.toggle('dim',dim);
   $('#lock').innerHTML=`${dim?'':`<div class="lkt">${LOGO(64)}</div>`}<div class="pwb"><h2>${T}</h2>${sub?`<p class="ps${bad?' bad':''}" role="status">${esc(sub)}</p>`:'<span class="sr" role="status"></span>'}<div class="pwd" aria-label="กรอกแล้ว ${L.buf.length} จาก ${L.n} หลัก">${Array.from({length:L.n},(_,i)=>i).map(i=>`<span class="${i<L.buf.length?'f':''}"></span>`).join('')}</div>
    <div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-act="lk" data-k="${n}" aria-label="${n}">${n}</button>`).join('')}<button class="e" tabindex="-1" aria-hidden="true"></button><button data-act="lk" data-k="0" aria-label="0">0</button><button class="sm" data-act="lk" data-k="del" aria-label="ลบหนึ่งหลัก">⌫</button></div>
    ${L.cancel?'<button class="pc" data-act="lk-cancel">ยกเลิก</button>':''}${L.mode==='unlock'?'<button class="pc" data-act="lk-forgot">ลืมรหัสผ่าน</button>':''}</div>`;
@@ -873,7 +876,7 @@ function backNav(){
 function boot(){
   const NV=[['home','หน้าหลัก'],['doc','เอกสาร'],['scan','สแกน'],['hist','ประวัติ'],['set','ตั้งค่า']];
   $('#fab').innerHTML=ic('chat',26);
-  $('#nv').innerHTML=NV.map((n,i)=>`<button class="ni${i===2?' sc':''}${i===0?' on':''}" data-act="goto" data-arg="${i}">${i===2?`<span class="sb">${ic('scan',30)}</span>`:ic(n[0],26)}<b>${n[1]}</b></button>`).join('');
+  $('#nv').innerHTML=NV.map((n,i)=>`<button class="ni${i===2?' sc':''}${i===0?' on':''}" data-act="goto" data-arg="${i}">${i===2?`<span class="sb">${ic('nscan',30)}</span>`:ic(i===0?'nhome':n[0],26)}<b>${n[1]}</b></button>`).join('');
   document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t)return;const f=A[t.dataset.act];if(f){if(t.tagName==='A')return;f(t.dataset,t,e)}});
   applyTheme();matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(S.theme==='system')applyTheme()});
   document.addEventListener('change',e=>{const t=e.target.closest('[data-chg]');if(t)C[t.dataset.chg]?.(t,e)});
@@ -900,6 +903,8 @@ function boot(){
   $('#vwr').addEventListener('wheel',e=>{if(S.view&&e.target.closest('#vbox')){e.preventDefault();vZoom(S.view.z*Math.exp(-e.deltaY*.002))}},{passive:false});
   addEventListener('resize',fitV);
   setInterval(()=>{if(!S.auto||S.tab!==0||S.view||$('#sh.on')||Date.now()<S.pz)return;const c=$('#cr');if(!c)return;const e=c.children[S.ci+2];if(e)c.scrollTo({left:crX(c,e),behavior:'smooth'})},4500);
+  // no page zoom (pinch or double-tap): iOS Safari ignores user-scalable=no, so its gesture events are cancelled too. The document viewer has its own pinch/double-tap zoom and is not affected.
+  ['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
   if(import.meta.env.PROD&&'serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js'));
   // no loading screen: the app's own blue shows until the first real screen is ready
   if(demoOnly||/[?&#]demo\b/.test(location.search+location.hash)){if(configured)sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){S.rec=true;newPw()}});enterDemo(true);return}

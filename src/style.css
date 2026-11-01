@@ -604,3 +604,20 @@ html[data-theme=dark] input[type=date]{background:#0f1131;border-color:#2f3570;c
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .pwb .ps{margin-top:6px;min-height:0}
 .pwb{max-height:92%}
+
+/* redraws while the sheet is already showing (wrong code, wait timer) must not replay the slide-up */
+.lock.still .pwb{animation:none}
+
+/* phones / installed app: pin the app to the whole screen so the bottom menu sits on the screen edge (100dvh can come out shorter than the screen in an iPhone home-screen app, leaving an empty strip under the menu) */
+@media not all and (min-width:520px) and (min-height:640px){
+  html,body{height:100%;min-height:100%;background:#fff}
+  #app{position:fixed;top:0;bottom:0;left:0;right:0;margin:0 auto;height:auto;min-height:-webkit-fill-available}
+}
+
+/* no browser zoom (pinch / double-tap); scrolling and swipes still work. The viewer sets its own touch-action. */
+html,body{touch-action:pan-x pan-y}
+
+/* bottom menu: lighter outline icons (like the reference photo) instead of heavy strokes */
+.ni svg{stroke-width:1.9}
+.ni:not(.sc) svg{width:31px;height:31px}
+.ni{font-size:12px}
