@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-mock
+dist-spy
+.env
+.env.local
+tests/_gen
+tests/shots
+.DS_Store
+.vercel
