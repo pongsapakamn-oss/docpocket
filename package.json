@@ -1,0 +1,23 @@
+{
+ "name": "docpocket",
+ "private": true,
+ "license": "MIT",
+ "description": "DocPocket – independent personal document organiser PWA (Thai UI)",
+ "version": "1.0.0",
+ "type": "module",
+ "scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "build:mock": "node tools/build-mock.mjs",
+  "preview": "vite preview",
+  "build:spy": "node tools/build-spy.mjs"
+ },
+ "dependencies": {
+  "@fontsource/prompt": "^5.1.0",
+  "@supabase/supabase-js": "^2.45.0"
+ },
+ "devDependencies": {
+  "vite": "^5.4.0",
+  "esbuild": "^0.24.0"
+ }
+}
