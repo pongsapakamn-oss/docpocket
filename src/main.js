@@ -87,6 +87,12 @@ const thErr=m=>({'Invalid login credentials':'อีเมลหรือรห�
 /* ===================== ui helpers ===================== */
 let tt;function toast(m){const t=$('#ts');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),3200)}
 function sheet(h){const s=$('#sh');s.innerHTML='<i class="gp"></i>'+h;$('#bd').classList.add('on');s.classList.add('on');$('#app').classList.add('sh-open');s.scrollTop=0;hydrate(s)}
+// hidden screen-size diagnostic: tap the footer line at the bottom of Settings 5 times (used to find why an iPhone home-screen app can end above the screen edge)
+function dbgSheet(){
+  const r=e=>{const b=$(e).getBoundingClientRect();return `${Math.round(b.top)}→${Math.round(b.bottom)} (h ${Math.round(b.height)})`},cs=getComputedStyle($('#dbgp')),vv=window.visualViewport;
+  const rows=[['innerWidth × innerHeight',innerWidth+' × '+innerHeight],['screen.width × height',screen.width+' × '+screen.height],['visualViewport',vv?Math.round(vv.width)+' × '+Math.round(vv.height)+' · top '+Math.round(vv.offsetTop):'-'],['clientHeight (html)',document.documentElement.clientHeight],['safe area top / bottom',cs.paddingTop+' / '+cs.paddingBottom],['standalone',String(navigator.standalone===true||matchMedia('(display-mode: standalone)').matches)],['#app',r('#app')],['#nv',r('#nv')],['menu bottom to screen bottom',Math.round(innerHeight-$('#nv').getBoundingClientRect().bottom)+' px'],['pixel ratio',devicePixelRatio]];
+  sheet(`<h3>ข้อมูลหน้าจอ (สำหรับตรวจสอบ)</h3><div class="dbgt">${rows.map(x=>`<div><span>${x[0]}</span><b>${esc(String(x[1]))}</b></div>`).join('')}</div><p>ลองปรับความสูงของแอป แล้วดูว่าเมนูล่างลงมาชิดขอบหรือไม่</p><button class="bt3" data-act="dbg-h" data-v="screen">ใช้ความสูง screen.height</button><button class="bt3" data-act="dbg-h" data-v="lvh">ใช้ 100lvh</button><button class="bt2" data-act="dbg-h" data-v="auto">กลับเป็นค่าปกติ</button>`)}
+let dbgN=0,dbgT=0;
 function closeSheet(){$('#bd').classList.remove('on');$('#sh').classList.remove('on');$('#app').classList.remove('sh-open')}
 function mount(i,h){const v=$('#v'+i);v.innerHTML=h;hydrate(v)}
 function hydrate(root=document){
@@ -702,6 +708,7 @@ const A={
   'home-reset'(){const im=[...(S.profile.home?.banners||[]).map(b=>b?.img),...(S.profile.home?.anns||[]).map(a=>a?.pic),S.profile.home?.annPic?.path].filter(Boolean);saveHome({banners:null,anns:null,annPic:null},'คืนค่าเริ่มต้นแล้ว').then(()=>{if(im.length)Promise.resolve(sb.storage.from(B).remove(im)).catch(()=>0)})},
   'lock-setup'(){closeSheet();go(4);setTimeout(()=>$('#v4 [data-act=tg-lock]')?.scrollIntoView({block:'center',behavior:'smooth'}),80)},
   'logout-ask'(){sheet(`<h3>ออกจากระบบ?</h3><p>ข้อมูลที่แคชในหน่วยความจำของแอปจะถูกล้างเมื่อออกจากระบบ เอกสารของคุณยังอยู่ในบัญชี</p><button class="bt" data-act="logout">ออกจากระบบ</button><button class="bt2" data-act="sheet-close">ยกเลิก</button>`)},
+  'dbg-h'(d){const a=$('#app');if(d.v==='auto'){a.style.height='';a.style.bottom='';return dbgSheet()}a.style.bottom='auto';a.style.height=d.v==='screen'?screen.height+'px':'100lvh';dbgSheet()},
   async logout(){if(S.demo)return exitDemo();await sb.auth.signOut();wipe()},'sheet-close':closeSheet,
   'doc-open':d=>docSheet(d.id),
   'doc-cat'(d){S.cat=d.c;$$('#dcat button').forEach(b=>b.classList.toggle('on',b.dataset.c===d.c));dfilter()},
@@ -903,6 +910,7 @@ function boot(){
   $('#vwr').addEventListener('wheel',e=>{if(S.view&&e.target.closest('#vbox')){e.preventDefault();vZoom(S.view.z*Math.exp(-e.deltaY*.002))}},{passive:false});
   addEventListener('resize',fitV);
   setInterval(()=>{if(!S.auto||S.tab!==0||S.view||$('#sh.on')||Date.now()<S.pz)return;const c=$('#cr');if(!c)return;const e=c.children[S.ci+2];if(e)c.scrollTo({left:crX(c,e),behavior:'smooth'})},4500);
+  document.addEventListener('click',e=>{if(!e.target.closest('.dfoot'))return;const t=Date.now();dbgN=t-dbgT<2500?dbgN+1:1;dbgT=t;if(dbgN>=5){dbgN=0;dbgSheet()}});
   // no page zoom (pinch or double-tap): iOS Safari ignores user-scalable=no, so its gesture events are cancelled too. The document viewer has its own pinch/double-tap zoom and is not affected.
   ['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
   if(import.meta.env.PROD&&'serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js'));
