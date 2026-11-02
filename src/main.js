@@ -22,7 +22,7 @@ const ANNS=()=>Array.isArray(S.profile?.home?.anns)?S.profile.home.anns:ANN_DEF;
 const annDate=a=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(a.d||'');return m?`${m[3]}/${m[2]}/${S.era==='BE'?+m[1]+543:m[1]}`:''};
 const AIC=[['logo','โลโก้ DocPocket'],['bell','กระดิ่ง'],['doc','เอกสาร'],['shield','โล่'],['lock','กุญแจ'],['hist','นาฬิกา'],['set','ตั้งค่า'],['camera','กล้อง']];
 const annDef=()=>S.profile?.home?.annPic||null;
-const annIc=(a,cls='')=>a.pu?`<img class="nc-ic nc-pic ${cls}" src="${esc(a.pu)}" alt="">`:a.pic?`<img class="nc-ic nc-pic ${cls}" data-bnimg="${esc(a.pic)}" data-v="${+a.pv||0}" alt="">`:(!a.ic||a.ic==='logo')&&!a.img&&annDef()?`<img class="nc-ic nc-pic ${cls}" data-bnimg="${esc(annDef().path)}" data-v="${+annDef().v||0}" alt="">`:a.img?`<img class="nc-ic nc-im ${cls}" src="${esc(a.img)}" alt="">`:(!a.ic||a.ic==='logo')?`<span class="nc-ic ${cls}"></span>`:`<span class="nc-ic nc-g ${cls}">${ic(a.ic,12)}</span>`;
+const annIc=(a,cls='')=>a.pu?`<img class="nc-ic nc-pic ${cls}" src="${esc(a.pu)}" alt="">`:a.pic?`<img class="nc-ic nc-pic ${cls}" data-bnimg="${esc(a.pic)}" data-v="${+a.pv||0}" alt="">`:(!a.ic||a.ic==='logo')&&!a.img&&annDef()?`<img class="nc-ic nc-pic ${cls}" data-bnimg="${esc(annDef().path)}" data-v="${+annDef().v||0}" alt="">`:a.img?`<img class="nc-ic nc-im ${cls}" src="${esc(a.img)}" alt="">`:(!a.ic||a.ic==='logo')?(demoOnly?`<img class="nc-ic nc-im ${cls}" src="/announce-default.png" alt="">`:`<span class="nc-ic ${cls}"></span>`):`<span class="nc-ic nc-g ${cls}">${ic(a.ic,12)}</span>`;
 const annCard=(a,home)=>`<button class="nc" data-act="ann" data-id="${esc(a.id)}">${annIc(a)}<span class="nc-bd"><span class="nc-hd"><b>${esc(a.t)}</b><span class="nc-dt">${annDate(a)}</span></span><p>${a.demo&&!home?'<i class="demo">DEMO</i>':''}${esc(a.s)}</p></span></button>`;
 const FOOT0='DocPocket · แอปจัดระเบียบเอกสารส่วนตัว · ไม่ใช่บริการของหน่วยงานรัฐ';
 // public DEMO build: one short non-affiliation line only (this app looks like a government app, so that line stays); other builds keep the full footer
@@ -43,11 +43,13 @@ const BTPL={b1:'น้ำเงิน · ภาพการ์ดเอกสา
 const BGO=[[1,'แท็บเอกสาร'],[2,'สแกน'],[3,'ประวัติ'],[4,'ตั้งค่า'],[-1,'ไม่ทำอะไร']];
 const DEF_BN=[{id:'d1',tpl:'b1',t1:'คลังเอกสารออนไลน์',t2:'เอกสารต่าง ๆ , ใบอนุญาต\nสัญญา ใบรับรอง ใบเสร็จ',t3:'',go:1},
  {id:'d2',tpl:'b2',t1:'เอกสารของคุณ อยู่กับคุณเสมอ',t2:'จัดเก็บอย่างเป็นส่วนตัว เปิดดูได้เฉพาะคุณ',t3:'DocPocket · กระเป๋าเอกสารส่วนตัว\nตั้งรหัสล็อกแอป 6 หลักได้ที่หน้าตั้งค่า',go:4}];
+// public DEMO build: the two default banners are the picture files public/banner-1.jpg and banner-2.jpg (replace them in GitHub to change the defaults)
+if(demoOnly){DEF_BN[0].url='/banner-1.jpg';DEF_BN[1].url='/banner-2.jpg'}
 const BNS=()=>Array.isArray(S.profile?.home?.banners)&&S.profile.home.banners.length?S.profile.home.banners:DEF_BN;
 const brk=t=>esc(t||'').replace(/\n/g,'<br>');
-const bnCls=b=>(b.tpl in BTPL?b.tpl:'b1')+((b.pu||b.img)?' bimg':'');
+const bnCls=b=>(b.tpl in BTPL?b.tpl:'b1')+((b.pu||b.img||b.url)?' bimg':'');
 /* an uploaded banner picture replaces the designed banner: full-bleed image, loaded privately from the user's own storage */
-const bnInner=b=>(b.pu||b.img)?`<img class="bn-pic" alt="${esc(b.t1||'แบนเนอร์')}" ${b.pu?`src="${esc(b.pu)}"`:`data-bnimg="${esc(b.img)}" data-v="${+b.iv||0}"`}>`:b.tpl==='b2'?`<span class="tx c"><span class="t1">${esc(b.t1)}</span><span class="t2">${brk(b.t2)}</span>${b.t3?`<i class="orn"></i><span class="t3">${brk(b.t3)}</span>`:''}</span>${ART2}`
+const bnInner=b=>(b.pu||b.img||b.url)?`<img class="bn-pic" alt="${esc(b.t1||'แบนเนอร์')}" ${b.pu?`src="${esc(b.pu)}"`:b.img?`data-bnimg="${esc(b.img)}" data-v="${+b.iv||0}"`:`src="${esc(b.url)}"`}>`:b.tpl==='b2'?`<span class="tx c"><span class="t1">${esc(b.t1)}</span><span class="t2">${brk(b.t2)}</span>${b.t3?`<i class="orn"></i><span class="t3">${brk(b.t3)}</span>`:''}</span>${ART2}`
   :`<span class="tx"><span class="t1">${esc(b.t1)}</span><span class="t2">${brk(b.t2)}</span></span>${b.tpl==='b3'?ART3:ART1}`;
 const TI=(b,st='#303891')=>`<svg viewBox="0 0 48 48" fill="none" stroke="${st}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${b}</svg>`;
 const TILE={
@@ -308,7 +310,7 @@ function R4(){
     <label for="la">ล็อกอัตโนมัติเมื่อออกจากแอป</label><select id="la" data-chg="lock-after">${[[0,'ทันที'],[60,'หลัง 1 นาที'],[300,'หลัง 5 นาที']].map(o=>`<option value="${o[0]}" ${S.lockAfter===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>`:''}
     <div class="rw"><span>ซ่อนภาพบนหน้าหลักจนกว่าจะแตะ<small>แสดงภาพแบบเบลอพร้อมรูปกุญแจ จนกว่าจะแตะ</small></span>${tg('tg-hidepv',S.hidePv,'ซ่อนภาพบนหน้าหลัก')}</div></div>`}
    <div class="cd"><h4>หน้าหลัก: แบนเนอร์และประกาศ</h4><p class="hint">แก้ข้อความ แบบแบนเนอร์ และไอคอนประกาศได้เอง บันทึกไว้ในบัญชีของคุณ</p>
-     <div class="lb">แบนเนอร์ที่เลื่อนได้ (${BNS().length}/6)</div>${BNS().map((b,i)=>`<button class="rw" data-act="bn-edit" data-i="${i}"><span class="bnsw ${b.tpl in BTPL?b.tpl:'b1'}">${b.img?`<img alt="" data-bnimg="${esc(b.img)}" data-v="${+b.iv||0}">`:''}</span><span>${esc(b.t1)||(b.img?'(แบนเนอร์รูปภาพ)':'(ไม่มีหัวข้อ)')}<small>${b.img?'รูปแบนเนอร์ของฉัน':(BTPL[b.tpl]||BTPL.b1)}</small></span>${ic('edit',18)}</button>`).join('')}
+     <div class="lb">แบนเนอร์ที่เลื่อนได้ (${BNS().length}/6)</div>${BNS().map((b,i)=>`<button class="rw" data-act="bn-edit" data-i="${i}"><span class="bnsw ${b.tpl in BTPL?b.tpl:'b1'}">${b.img?`<img alt="" data-bnimg="${esc(b.img)}" data-v="${+b.iv||0}">`:b.url?`<img alt="" src="${esc(b.url)}">`:''}</span><span>${esc(b.t1)||(b.img||b.url?'(แบนเนอร์รูปภาพ)':'(ไม่มีหัวข้อ)')}<small>${b.img||b.url?'รูปแบนเนอร์':(BTPL[b.tpl]||BTPL.b1)}</small></span>${ic('edit',18)}</button>`).join('')}
      ${BNS().length<6?`<button class="rw" data-act="bn-edit" data-i="new">${ic('plus',18)}<span>เพิ่มแบนเนอร์</span></button>`:''}
      <div class="lb">ประกาศ (${ANNS().length}/20)</div><button class="rw" data-act="anpic-edit">${annIc({ic:'logo'},'ai2')}<span>ไอคอนเริ่มต้นของประกาศทั้งหมด<small>${annDef()?'ใช้รูปของฉัน':'ใช้ไอคอน DocPocket'}</small></span>${ic('edit',18)}</button>${ANNS().map((a,i)=>`<button class="rw" data-act="an-edit" data-i="${i}">${annIc(a,'ai2')}<span>${esc(a.t)}<small>${annDate(a)}${a.demo?' · DEMO':''}</small></span>${ic('edit',18)}</button>`).join('')}
      ${ANNS().length<20?`<button class="rw" data-act="an-edit" data-i="new">${ic('plus',18)}<span>เพิ่มประกาศ</span></button>`:''}
@@ -796,7 +798,7 @@ const C={
 function applyTheme(){const t=S.theme==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):S.theme;document.documentElement.dataset.theme=t;
   $('meta[name=theme-color]')?.setAttribute('content',t==='dark'?'#11132f':'#303891')}
 function bnRead(){const f=$('#bnf');if(!f)return null;const g=n=>f.elements[n]?.value??'',ln=v=>v.replace(/\r/g,'').split('\n').slice(0,2).join('\n').trim().slice(0,90);
-  return{...S.bnEd.b,img:S.bnEd.rm?null:(S.bnEd.b.img||null),pu:S.bnEd.pu||null,tpl:BTPL[g('tpl')]?g('tpl'):'b1',t1:g('t1').trim().slice(0,40),t2:ln(g('t2')),t3:ln(g('t3')),go:BGO.some(x=>x[0]===+g('go'))?+g('go'):-1}}
+  return{...S.bnEd.b,img:S.bnEd.rm?null:(S.bnEd.b.img||null),url:S.bnEd.rm?null:(S.bnEd.b.url||null),pu:S.bnEd.pu||null,tpl:BTPL[g('tpl')]?g('tpl'):'b1',t1:g('t1').trim().slice(0,40),t2:ln(g('t2')),t3:ln(g('t3')),go:BGO.some(x=>x[0]===+g('go'))?+g('go'):-1}}
 function bnPv(){const b=bnRead(),e=$('#bnpv');if(!b||!e)return;e.className='bn '+bnCls(b);e.innerHTML=bnInner(b);hydrate(e);const w=$('#b3w');if(w)w.hidden=b.tpl!=='b2'}
 /* announcement icon picture: pick -> frame as a square -> stored as one 256x256 JPEG, shown as the round icon */
 function anUpHtml(){const e=S.anEd,a=e.a,has=!!(e.pu||(a.pic&&!e.rm));
@@ -816,7 +818,7 @@ async function anpPick(file){
     try{const blob=await iconBlob(file,rot,crop),path=`${S.user.id}/ann-default`,u=await sb.storage.from(B).upload(path,blob,{contentType:'image/jpeg',upsert:true,cacheControl:'0'});if(u.error)throw u.error;
       await saveHome({annPic:{path,v:Date.now()}},'ตั้งเป็นไอคอนเริ่มต้นของประกาศทั้งหมดแล้ว')}catch(x){toast('ตั้งรูปเริ่มต้นไม่สำเร็จ: '+(x.message||x))}}})}
 /* banner picture: pick -> frame it to the banner shape in the editor -> stored as one 2128x496 JPEG (2x of the 1064x248 slide) */
-function bnUpHtml(){const e=S.bnEd,has=!!(e.pu||(e.b.img&&!e.rm));
+function bnUpHtml(){const e=S.bnEd,has=!!(e.pu||((e.b.img||e.b.url)&&!e.rm));
   return `<div class="bnup"><label class="pk" for="bnfile">${ic('image',16)} ${has?'เปลี่ยนรูปแบนเนอร์':'อัปโหลดรูปแบนเนอร์ของฉัน'}</label><input id="bnfile" type="file" hidden accept="image/*" data-chg="bn-file">${has?'<button type="button" class="mini dg" data-act="bn-img-del">ลบรูป</button>':''}</div>
    <p class="nt tl bnhint">${e.pu?'เลือกรูปใหม่แล้ว กด “บันทึก” เพื่อใช้งาน · ':''}${has?'เมื่อมีรูป แบนเนอร์จะแสดงเป็นรูปเต็มพื้นที่ (ข้อความไม่แสดง) · ':''}ขนาดแนะนำ 1064×248 พิกเซล (อัตราส่วน 4.3:1) JPG, PNG หรือ WebP · รูปเก็บเป็นส่วนตัวในบัญชีของคุณ · ใช้เฉพาะรูปที่คุณมีสิทธิ์ใช้</p>`}
 const bnUp=()=>{const e=$('#bnup');if(e&&S.bnEd)e.innerHTML=bnUpHtml()};
