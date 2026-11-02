@@ -25,7 +25,8 @@ const annDef=()=>S.profile?.home?.annPic||null;
 const annIc=(a,cls='')=>a.pu?`<img class="nc-ic nc-pic ${cls}" src="${esc(a.pu)}" alt="">`:a.pic?`<img class="nc-ic nc-pic ${cls}" data-bnimg="${esc(a.pic)}" data-v="${+a.pv||0}" alt="">`:(!a.ic||a.ic==='logo')&&!a.img&&annDef()?`<img class="nc-ic nc-pic ${cls}" data-bnimg="${esc(annDef().path)}" data-v="${+annDef().v||0}" alt="">`:a.img?`<img class="nc-ic nc-im ${cls}" src="${esc(a.img)}" alt="">`:(!a.ic||a.ic==='logo')?`<span class="nc-ic ${cls}"></span>`:`<span class="nc-ic nc-g ${cls}">${ic(a.ic,12)}</span>`;
 const annCard=(a,home)=>`<button class="nc" data-act="ann" data-id="${esc(a.id)}">${annIc(a)}<span class="nc-bd"><span class="nc-hd"><b>${esc(a.t)}</b><span class="nc-dt">${annDate(a)}</span></span><p>${a.demo&&!home?'<i class="demo">DEMO</i>':''}${esc(a.s)}</p></span></button>`;
 const FOOT0='DocPocket · แอปจัดระเบียบเอกสารส่วนตัว · ไม่ใช่บริการของหน่วยงานรัฐ';
-const foot=home=>FOOT0+((S.demo||isMock)&&!home?' · โหมด DEMO':'');
+// public DEMO build: one short non-affiliation line only (this app looks like a government app, so that line stays); other builds keep the full footer
+const foot=home=>demoOnly?'DocPocket · ไม่ใช่บริการของหน่วยงานรัฐ':FOOT0+((S.demo||isMock)&&!home?' · โหมด DEMO':'');
 const ART1=`<svg class="art" viewBox="0 0 150 72" aria-hidden="true"><defs><linearGradient id="ga" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d9e7f8"/></linearGradient><linearGradient id="gb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2c3279"/><stop offset="1" stop-color="#1d2160"/></linearGradient></defs>
  <g transform="rotate(-9 82 20)"><rect x="40" y="2" width="84" height="52" rx="6" fill="#eef4fc" stroke="#c8d6ee"/><rect x="40" y="2" width="84" height="9" rx="4" fill="#5b66d6"/><rect x="48" y="18" width="40" height="3" rx="1.5" fill="#b9c6e4"/><rect x="48" y="25" width="30" height="3" rx="1.5" fill="#b9c6e4"/></g>
  <rect x="22" y="20" width="90" height="56" rx="6" fill="url(#ga)" stroke="#c4d3ec"/><rect x="22" y="20" width="90" height="10" rx="5" fill="#dfe8f7"/><rect x="28" y="23.5" width="34" height="3" rx="1.5" fill="#303891"/>
@@ -60,7 +61,7 @@ const SC=[{k:'req',ti:'view',t:'ตรวจสอบ<br>คำขอ',i:'hist'}
 const KL={uploaded:['plus','อัปโหลดเอกสาร'],replaced:['refresh','เปลี่ยนภาพเอกสาร'],deleted:['trash','ลบเอกสาร'],viewed:['image','เปิดดูเอกสาร'],profile_updated:['user','อัปเดตโปรไฟล์'],login:['lock','เข้าสู่ระบบ'],copy_saved:['download','บันทึกสำเนาลายน้ำ']};
 const P={bell:'M5.5 17h13l-1.8-2.6V10.5a4.7 4.7 0 0 0-9.4 0v3.9zM10 20a2 2 0 0 0 4 0',chat:'M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-8l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM8 11h.01M12 11h.01M16 11h.01',home:'M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',doc:'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h4',
  scan:'M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8',hist:'M12 7v5l3 2M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5',
- set:'M4 8h9M17 8h3M4 16h3M11 16h9M15 5.5v5M9 13.5v5',nhome:'M2.8 11.4L12 3.2l9.2 8.2M5.4 9.4V19.6a1.4 1.4 0 0 0 1.4 1.4h10.4a1.4 1.4 0 0 0 1.4-1.4V9.4M15.6 5.2V3.4h2.6v4.2M10.3 13.6a1.7 1.7 0 1 0 3.4 0a1.7 1.7 0 1 0-3.4 0M12 15.3v2.9',nscan:'M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7.4 12h.01M10.5 12h.01M13.5 12h.01M16.6 12h.01',power:'M12 3v8M7 6.6a8 8 0 1 0 10 0',
+ set:'M4 8h9M17 8h3M4 16h3M11 16h9M15 5.5v5M9 13.5v5',dperson:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM5 20c0-3.5 3.1-6 7-6s7 2.5 7 6',dhome:'M3 11l9-8 9 8M5.5 9.5V20a1 1 0 0 0 1 1H10v-5.5h4V21h3.5a1 1 0 0 0 1-1V9.5',dbaby:'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM9 11h.01M15 11h.01M9.5 14.6c.7.7 1.5 1 2.5 1s1.8-.3 2.5-1M12 4c-.9-1.4 0-2.3 1.4-1.8',dheart:'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',dbroken:'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10zM12 7.4l-1.6 3.2 2.6 2-1.6 3.6',dwheel:'M12.5 4.5a1.4 1.4 0 1 0 0-2.8 1.4 1.4 0 0 0 0 2.8zM12.5 6.5v6h4.2l1.8 4.5M9.2 10a5.2 5.2 0 1 0 6.3 7.8',dpermit:'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 14l2 2 4-4',nhome:'M2.8 11.4L12 3.2l9.2 8.2M5.4 9.4V19.6a1.4 1.4 0 0 0 1.4 1.4h10.4a1.4 1.4 0 0 0 1.4-1.4V9.4M15.6 5.2V3.4h2.6v4.2M10.3 13.6a1.7 1.7 0 1 0 3.4 0a1.7 1.7 0 1 0-3.4 0M12 15.3v2.9',nscan:'M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7.4 12h.01M10.5 12h.01M13.5 12h.01M16.6 12h.01',si_person:'M12 3.8a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2zM5.2 20.2c.5-3.7 3.2-5.6 6.8-5.6s6.3 1.9 6.8 5.6',si_house:'M3 11.3L12 3.5l9 7.8M5.6 9.6v10.7h12.8V9.6M10 20.3v-5.2h4v5.2M16 5.6V3.6h2.4v4',si_baby:'M12 3.4a8.6 8.6 0 1 0 0 17.2 8.6 8.6 0 0 0 0-17.2zM9.2 11h.01M14.8 11h.01M9.4 15c1.6 1.3 3.6 1.3 5.2 0M12 3.4c-.6-1.2-.2-2.2 1.2-2.4',si_heart:'M12 20.2s-7.6-4.5-7.6-10a4.3 4.3 0 0 1 7.6-2.7 4.3 4.3 0 0 1 7.6 2.7c0 5.5-7.6 10-7.6 10z',si_broken:'M12 20.2s-7.6-4.5-7.6-10a4.3 4.3 0 0 1 7.6-2.7 4.3 4.3 0 0 1 7.6 2.7c0 5.5-7.6 10-7.6 10zM12 7.5l-1.9 3.4 2.8 1.7-2.1 4.2',si_wheel:'M11 3.2a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2zM11 8v6h5.2l2.3 5.2M11 11h4.6M8.4 12.8a5 5 0 1 0 6.3 6.5',si_gun:'M14 3H7a1.6 1.6 0 0 0-1.6 1.6v14.8A1.6 1.6 0 0 0 7 21h10a1.6 1.6 0 0 0 1.6-1.6V7.6zM14 3v4.6h4.6M8.6 12.2h5.4v1.8h-2.2v2.4h-1.4V14H8.6z',power:'M12 3v8M7 6.6a8 8 0 1 0 10 0',
  user:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 4-6 8-6s8 2 8 6',exp:'M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7',
  flip:'M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5',x:'M6 6l12 12M18 6L6 18',chev:'M9 6l6 6-6 6',edit:'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
  camera:'M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM12 16.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z',
@@ -164,7 +165,7 @@ function R0(){
     <div class="cr" id="cr">${[BL[BL.length-1],...BL,BL[0]].map((b,i)=>`<button class="bn ${bnCls(b)}" data-act="${b.go>=0?'goto':'noop'}" data-arg="${+b.go}"${i===0||i===BL.length+1?' aria-hidden="true" tabindex="-1"':''}>${bnInner(b)}</button>`).join('')}</div>
     <div class="dots" id="dt">${BL.map((b,i)=>`<i class="${i===S.ci?'a':''}"></i>`).join('')}</div>
     <div class="nh"><span>ประกาศทั้งหมด</span><button data-act="ann-more">ทั้งหมด ›</button></div>
-    <div class="nl">${ANNS().map(a=>annCard(a,true)).join('')}</div>${S.demo||isMock?'<div class="dstrip" role="note">DEMO VERSION</div>':''}</div>
+    <div class="nl">${ANNS().map(a=>annCard(a,true)).join('')}</div>${(S.demo||isMock)&&!demoOnly?'<div class="dstrip" role="note">DEMO VERSION</div>':''}</div>
    <div class="dfoot">${foot(true)}</div>`);
   const fw=$('#v0 .flipw');if(fw&&n>1){let sx=0,sy=0;fw.addEventListener('pointerdown',e=>{sx=e.clientX;sy=e.clientY},{passive:true});
     fw.addEventListener('pointerup',e=>{const dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)>48&&Math.abs(dx)>Math.abs(dy)*1.5){S.swiped=Date.now();A[dx<0?'doc-next':'doc-prev']()}},{passive:true})}
@@ -194,11 +195,21 @@ function dfilter(){const q=(S.q||'').trim().toLowerCase(),c=S.cat&&S.cat!=='ท�
   $$('#dlist .dl').forEach(e=>{const v=(!q||e.dataset.s.includes(q))&&(!c||e.dataset.c===c)&&(!st||e.dataset.st.split(' ').includes(st));e.hidden=!v;if(v)k++});
   const L=$('#dlist');if(L)L.hidden=!k;const cn=$('#dcount');if(cn)cn.textContent=k===S.docs.length?`${k} รายการ`:`แสดง ${k} จาก ${S.docs.length} รายการ`;
   let m=$('#dnone');if(!k&&L){if(!m)L.insertAdjacentHTML('afterend','<div class="dnone" id="dnone"><p>ไม่พบเอกสารที่ตรงกับการค้นหาหรือตัวกรอง</p><button class="btn g" data-act="doc-clear">ล้างการค้นหาและตัวกรอง</button></div>')}else m?.remove()}
+const DREF=[[['dperson','บัตรประจำตัวประชาชน','บัตรประจำตัวประชาชน','b']],[['dhome','ทะเบียนบ้าน','ข้อมูลทะเบียนบ้าน','g'],['dbaby','สูติบัตร','ข้อมูลการเกิด สถานที่เกิด บิดา มารดา','g']],[['dheart','ทะเบียนสมรส','ทะเบียนการสมรส','r'],['dbroken','ทะเบียนหย่า','ทะเบียนการหย่า','r']],[['dwheel','บัตรประจำตัวคนพิการ','บัตรประจำตัวคนพิการ','g']],[['dpermit','ใบอนุญาตอาวุธปืน แบบ ป.4','รายการใบอนุญาตให้มีและใช้อาวุธปืน (แบบ ป.4)','b'],['dpermit','ใบอนุญาตอาวุธปืน แบบ ป.3','รายการใบอนุญาตให้ซื้ออาวุธปืน (แบบ ป.3)','b']]];
+// plain, non-interactive list (labels only: no click, no link, no function)
+const drefHtml=()=>`<div class="dref"><h4>รวมเอกสารที่เกี่ยวข้อง</h4><p>แสดงรายการเอกสารทั้งหมด</p>${DREF.map(g=>`<div class="dgc">${g.map(r=>`<div class="dgr"><span class="dgi ${r[3]}">${ic(r[0],24)}</span><span class="dgt"><b>${r[1]}</b><small>${r[2]}</small></span></div>`).join('')}</div>`).join('')}</div>`;
+// public DEMO build (VITE_DEMO_ONLY=1): เอกสาร and ประวัติ are plain, non-clickable lists in the reference style. Real accounts keep the full library and history.
+const SDOC=[[['si_person','c-nv','บัตรประจำตัวประชาชน','บัตรประจำตัวประชาชน']],[['si_house','c-gr','ทะเบียนบ้าน','ข้อมูลทะเบียนบ้าน'],['si_baby','c-gr','สูติบัตร','ข้อมูลการเกิด สถานที่เกิด บิดา มารดา']],[['si_heart','c-rd','ทะเบียนสมรส','ทะเบียนการสมรส'],['si_broken','c-rd','ทะเบียนหย่า','ทะเบียนการหย่า']],[['si_wheel','c-gr','บัตรประจำตัวคนพิการ','บัตรประจำตัวคนพิการ']],[['si_gun','c-nv','ใบอนุญาตอาวุธปืน แบบ ป.4','รายการใบอนุญาตให้มีและใช้อาวุธปืน (แบบ ป.4)'],['si_gun','c-nv','ใบอนุญาตอาวุธปืน แบบ ป.3','รายการใบอนุญาตให้ซื้ออาวุธปืน (แบบ ป.3)']]];
+const SHIS=[['5 กรกฎาคม พ.ศ. 2569','ระบบตัวอย่างบริการบัญชี มีการร้องขอให้ท่านยืนยันตัวตน'],['13 มีนาคม พ.ศ. 2569','ระบบตัวอย่างสำหรับสมัครเข้าศึกษา มีการร้องขอให้ท่านยืนยันตัวตน'],['9 มีนาคม พ.ศ. 2569','ระบบตัวอย่างสำหรับสมัครเข้าศึกษา มีการร้องขอให้ท่านยืนยันตัวตน'],['7 มีนาคม พ.ศ. 2569','ระบบตัวอย่างสำหรับสมัครเข้าศึกษา มีการร้องขอให้ท่านยืนยันตัวตน']];
+const staticDocs=()=>`<div class="pn sdoc"><h3 class="mh"><span>เอกสาร</span></h3><div class="sdh"><b>รวมเอกสารที่เกี่ยวข้อง</b><span>แสดงรายการเอกสารทั้งหมด</span></div>${SDOC.map(g=>`<div class="sgc">${g.map(r=>`<div class="sri"><span class="ssi ${r[1]}">${ic(r[0],24)}</span><div><b>${r[2]}</b><small>${r[3]}</small></div></div>`).join('')}</div>`).join('')}</div>`;
+const staticHist=()=>`<div class="pn sdoc"><h3 class="mh"><span>ประวัติการทำรายการ</span></h3>${SHIS.map(h=>`<h4 class="shd2">${h[0]}</h4><div class="shc"><div class="shr"><span class="sho">${ic('image',22)}</span><b>ยืนยันตัวตน</b><em>ยินยอม</em></div><p>${h[1]}</p></div>`).join('')}</div>`;
 function R1(){
+  if(demoOnly)return mount(1,staticDocs());
   const n=S.docs.length,full=n>=LIM,inf=S.docs.map(d=>({d,i:dinfo(d)})),cnt=k=>inf.filter(x=>x.i.k.includes(k)).length;
   if(S.dst!=='all'&&!cnt(S.dst))S.dst='all';
   const sts=DST.filter(x=>x[0]==='all'||cnt(x[0]));
   mount(1,`<div class="pn"><h3 class="mh"><span>เอกสาร</span><small>${n}/${LIM}</small></h3>
+   ${drefHtml()}<h4 class="dmine">เอกสารของฉัน</h4>
    <p class="nb">เปิดดูได้เฉพาะเจ้าของบัญชีที่เข้าสู่ระบบ ไฟล์ที่อัปโหลดจะถูกเก็บตามต้นฉบับ การหมุน ครอป ซูม และลายน้ำเป็นเพียงการแสดงผล และสำเนาลายน้ำสร้างเมื่อคุณสั่งเท่านั้น</p>
    ${full?`<p class="nb dwarn">เก็บเอกสารครบ ${LIM} รายการแล้ว ลบเอกสารที่ไม่ใช้ก่อนจึงจะเพิ่มใหม่ได้</p>`:''}
    <div class="ffbtns"><button class="btn p" data-act="scan-to" data-doc="new" data-side="front" ${full?'disabled':''}>${ic('plus',16)} เพิ่มเอกสารใหม่</button><button class="btn g" data-act="scan-pick" ${full?'disabled':''}>${ic('image',16)} เลือกรูปจากเครื่อง</button></div>
@@ -217,7 +228,7 @@ function R2(){
   if(S.scan.doc!=='new'&&!docById(S.scan.doc))S.scan.doc='new';
   const sc=S.scan,ex=sc.doc==='new'?null:docById(sc.doc),has=ex?.images[sc.side];
   const vf=sc.file?`<img class="pv-img" src="${sc.pu||sc.url}" alt="ภาพตัวอย่างก่อนบันทึก">`:sc.cam?`<video id="cam" playsinline muted autoplay></video><div class="gd"></div>`
-    :`<div class="em">${ic('camera',34)}<b>พร้อมสแกน${SIDE[sc.side]}</b><span>วางบัตรให้เต็มกรอบ แสงสว่างสม่ำเสมอ ระบบจะครอปให้พอดีบัตรจริง (85.6×54 มม.) ให้อัตโนมัติ</span></div>`;
+    :`<div class="em">${ic('camera',34)}<b>พร้อมสแกน${SIDE[sc.side]}</b>${demoOnly?'':'<span>วางบัตรให้เต็มกรอบ แสงสว่างสม่ำเสมอ ระบบจะครอปให้พอดีบัตรจริง (85.6×54 มม.) ให้อัตโนมัติ</span>'}</div>`;
   const ctl=sc.file?`<p class="nb fitnote">${has?`ภาพนี้จะ<b>แทนที่</b>ภาพ${SIDE[sc.side]}เดิม`:`ภาพนี้จะถูกบันทึกเป็น${SIDE[sc.side]}`} · ${sc.crop?'จัดให้พอดีกรอบบัตรจริง (85.6×54 มม.) แล้ว ตรวจดูให้อ่านชัด แล้วกด “ยืนยัน” หรือ “ปรับภาพ” เพื่อขยับ ซูม หมุน':'ใช้ภาพเต็ม ไม่ครอป · กด “ครอปให้พอดีบัตร” เพื่อจัดให้พอดีกรอบบัตรจริง'}</p>
      <button class="bt2" data-act="scan-adjust" ${sc.busy?'disabled':''}>${ic('crop',18)} ปรับภาพ (ครอป · ซูม · หมุน)${sc.rot||sc.crop?' ✓':''}</button>
      <div class="row2"><button class="bt2" data-act="scan-rot" ${sc.busy?'disabled':''}>${ic('rr',18)} หมุน 90°</button><button class="bt2" data-act="scan-fit" ${sc.busy?'disabled':''}>${sc.crop?'ใช้ภาพเต็ม':'ครอปให้พอดีบัตร'}</button></div>
@@ -232,29 +243,35 @@ function R2(){
    ${sc.file?`<p class="scsum">${ic('doc',16)}<span><b>${esc(sc.doc==='new'?(sc.title.trim()||'เอกสารใหม่'):(ex?.title||''))}</b> · ${SIDE[sc.side]}</span></p>`:''}
    <div class="vf mt14${sc.file&&sc.crop?' card':''}">${vf}</div>${ctl}${!sc.file&&!sc.cam&&has?`<div class="lb mt14">ภาพ${SIDE[sc.side]}ที่บันทึกไว้ในเอกสารนี้</div>${slot(ex,sc.side)}`:''}
    <input type="file" id="fg" hidden accept="image/*" data-chg="scan-file"><input type="file" id="fc" hidden accept="image/*" capture="environment" data-chg="scan-file">
-   ${S.demo?'<p class="nb">โหมด DEMO: ภาพที่เพิ่มจะอยู่ในหน่วยความจำของแท็บนี้เท่านั้น ไม่ถูกอัปโหลดไปที่ใด และหายเมื่อออกจากโหมด DEMO ไม่ควรใช้เอกสารจริง</p>':''}<p class="nt mt14">รองรับรูปความละเอียดสูง JPG, PNG, WebP (และ HEIC บนอุปกรณ์ที่เปิดได้) ไม่เกิน 100 MB · เก็บไฟล์ต้นฉบับเต็มความละเอียด ไม่บีบอัดซ้ำ</p></div><div class="dfoot">${foot()}</div>`);
+   ${S.demo&&!demoOnly?'<p class="nb">โหมด DEMO: ภาพที่เพิ่มจะอยู่ในหน่วยความจำของแท็บนี้เท่านั้น ไม่ถูกอัปโหลดไปที่ใด และหายเมื่อออกจากโหมด DEMO ไม่ควรใช้เอกสารจริง</p>':''}${demoOnly?'':`<p class="nt mt14">รองรับรูปความละเอียดสูง JPG, PNG, WebP (และ HEIC บนอุปกรณ์ที่เปิดได้) ไม่เกิน 100 MB · เก็บไฟล์ต้นฉบับเต็มความละเอียด ไม่บีบอัดซ้ำ</p>`}</div><div class="dfoot">${foot()}</div>`);
   const v=$('#cam');if(v&&sc.stream){v.srcObject=sc.stream;v.play?.().catch(()=>{})}}
 const HF=[['all','ทั้งหมด',null],['up','อัปโหลด / แก้ภาพ',['uploaded','replaced']],['view','เปิดดู',['viewed']],['copy','สำเนา / ดาวน์โหลด',['copy_saved']],['del','ลบ',['deleted']],['acct','บัญชี / โปรไฟล์',['login','profile_updated']]];
 const HPAGE=25;
 const dayKey=ts=>{const d=new Date(ts);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
-const dayLabel=k=>k===dayKey(Date.now())?'วันนี้':k===dayKey(Date.now()-864e5)?'เมื่อวาน':fmtDate(k,S.era,true);
+const dayLabel=k=>fmtDate(k,S.era,true);
 const hm=ts=>{const d=new Date(ts);return `${pad(d.getHours())}:${pad(d.getMinutes())}`};
 /* a history row can open its document only while that document still exists (the row stores the document's title) */
 function histDoc(h){if(h.kind==='deleted'||!h.detail)return null;let b=null;S.docs.forEach(d=>{if(h.detail.includes(d.title)&&(!b||d.title.length>b.title.length))b=d});return b}
-function hrow(h){const k=KL[h.kind]||['hist',h.kind],d=histDoc(h),inner=`<span class="hi2 ${h.kind}">${ic(k[0],18)}</span><span class="hb"><b>${esc(k[1])}</b>${h.detail?`<small>${esc(h.detail)}</small>`:''}</span><span class="ht"><time datetime="${esc(h.created_at)}" title="${esc(fmtDT(h.created_at,S.era))}">${hm(h.created_at)}</time>${d?ic('chev',16):''}</span>`;
-  return d?`<button class="hr" data-act="hist-open" data-id="${d.id}" aria-label="${esc(k[1])} ${esc(h.detail||'')} เปิดเอกสาร">${inner}</button>`:`<div class="hr">${inner}</div>`}
+const HS=k=>k==='deleted'?['ลบแล้ว','bad']:k==='viewed'?['เปิดดู','info']:['สำเร็จ','ok'];
+// a history row is a plain card now: icon, title, status, description (no click, no link)
+function hrow(h){const k=KL[h.kind]||['hist',h.kind],st=HS(h.kind);
+  return `<div class="hr"><span class="hi2 ${h.kind}">${ic(k[0],20)}</span><span class="hb"><b>${esc(k[1])}</b>${h.detail?`<small>${esc(h.detail)}</small>`:''}</span><span class="ht"><i class="hst ${st[1]}">${st[0]}</i><time datetime="${esc(h.created_at)}" title="${esc(fmtDT(h.created_at,S.era))}">${hm(h.created_at)}</time></span></div>`}
 function R3(){
+  if(demoOnly)return mount(3,staticHist());
   const f=HF.find(x=>x[0]===S.hf)||HF[0],of=x=>x[2]?S.hist.filter(h=>x[2].includes(h.kind)):S.hist,all=of(f),shown=all.slice(0,S.hn);
   let cur='',rows='';
   shown.forEach(h=>{const k=dayKey(h.created_at);if(k!==cur){if(cur)rows+='</div>';cur=k;rows+=`<h4 class="hd3">${dayLabel(k)}</h4><div class="list hl">`}rows+=hrow(h)});if(cur)rows+='</div>';
-  mount(3,`<div class="pn"><h3 class="mh"><span>ประวัติ</span><small>${S.hist.length?`${S.hist.length} รายการ`:''}</small></h3>${S.hist.length?`
+  mount(3,`<div class="pn"><h3 class="mh"><span>ประวัติการทำรายการ</span><small>${S.hist.length?`${S.hist.length} รายการ`:''}</small></h3>${S.hist.length?`
    <div class="chips dc" id="hf" role="group" aria-label="กรองประวัติ">${HF.map(x=>`<button class="${x[0]===f[0]?'on':''}" data-act="hist-f" data-v="${x[0]}">${x[1]} <em>${of(x).length}</em></button>`).join('')}</div>
    ${shown.length?rows+(all.length>shown.length?`<button class="bt2 hmore" data-act="hist-more">แสดงเพิ่มเติม (อีก ${all.length-shown.length} รายการ)</button>`:''):`<div class="dempty">${ic('hist',34)}<b>ไม่มีรายการในหมวดนี้</b></div>`}
-   <p class="ffnote">แสดงกิจกรรมล่าสุดไม่เกิน 100 รายการ ประวัติเป็นบันทึกการใช้งานบัญชีของคุณ แก้ไขหรือลบเองไม่ได้ และจะถูกลบเมื่อลบบัญชี แตะรายการที่มีลูกศรเพื่อเปิดเอกสาร</p>`
+   <p class="ffnote">แสดงกิจกรรมล่าสุดไม่เกิน 100 รายการ ประวัติเป็นบันทึกการใช้งานบัญชีของคุณ แก้ไขหรือลบเองไม่ได้ และจะถูกลบเมื่อลบบัญชี</p>`
    :`<div class="dempty">${ic('hist',40)}<b>ยังไม่มีกิจกรรม</b><p>เมื่อคุณอัปโหลด เปิดดู แก้ไข หรือบันทึกสำเนาเอกสาร รายการจะแสดงที่นี่</p></div>`}</div><div class="dfoot">${foot()}</div>`)}
 const pad=n=>String(n).padStart(2,'0');
 function pfDraft(){const p=S.profile;return S.draft||{display_name:p.display_name||'',display_name_en:p.display_name_en||'',id_number:fmtId(p.id_number),address:p.address||'',card_issued_on:p.card_issued_on||'',member_no:fmtMember(p.member_no),dob:p.dob||'',card_expires_on:p.card_expires_on||'',phone:p.phone||'',contact_email:p.contact_email||''}}
+let spN=0,spT=0;
+// public DEMO build: the Settings screen is a blank white page until the top-right power button is tapped 5 times in a row while on it (see power()); it hides again when you leave the tab.
 function R4(){
+  if(demoOnly&&!S.setOpen)return mount(4,'<div class="pn sblank" aria-hidden="true"></div>');
   const v=pfDraft(),dm=S.demo||isMock;
   const tg=(a,on,l)=>`<button class="sw${on?' on':''}" data-act="${a}" role="switch" aria-checked="${on}" aria-label="${l}"></button>`;
   mount(4,`<div class="pn"><h3 class="mh"><span>ตั้งค่า</span></h3>
@@ -279,17 +296,17 @@ function R4(){
     <div class="rw"><span>รูปแบบปี<small>ใช้กับวันที่ทั้งหมดในแอป</small></span><div class="seg"><button data-act="era" data-v="BE" class="${S.era==='BE'?'on':''}">พ.ศ.</button><button data-act="era" data-v="CE" class="${S.era==='CE'?'on':''}">ค.ศ.</button></div></div>
     <label for="th">ธีม</label><select id="th" data-chg="theme">${[['light','สว่าง'],['dark','มืด'],['system','ตามระบบของเครื่อง']].map(o=>`<option value="${o[0]}" ${S.theme===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>
     <div class="rw"><span>เลื่อนแบนเนอร์อัตโนมัติ</span>${tg('tg-auto',S.auto,'เลื่อนแบนเนอร์อัตโนมัติ')}</div></div>
-   <div class="cd"><h4>ลายน้ำ</h4><p class="hint">ใช้กับภาพตัวอย่างและสำเนาที่บันทึก ต้นฉบับไม่ถูกแก้ไข ลายน้ำเป็นเพียงเครื่องหมายเตือนทางสายตา ไม่ใช่มาตรการความปลอดภัย</p>
+   ${demoOnly?'':`<div class="cd"><h4>ลายน้ำ</h4><p class="hint">ใช้กับภาพตัวอย่างและสำเนาที่บันทึก ต้นฉบับไม่ถูกแก้ไข ลายน้ำเป็นเพียงเครื่องหมายเตือนทางสายตา ไม่ใช่มาตรการความปลอดภัย</p>
     <div class="rw"><span>แสดงลายน้ำ</span>${tg('tg-wm',S.wm.on,'แสดงลายน้ำ')}</div>
     <label for="wo">ความทึบ</label><input id="wo" type="range" min="0.1" max="0.8" step="0.05" value="${S.wm.op}" data-inp="wm-op">
     <label for="wp">ตำแหน่ง</label><select id="wp" data-chg="wm-pos">${WMPOS.map(o=>`<option value="${o[0]}" ${S.wm.pos===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>
     <label for="wt">ข้อความ</label><input id="wt" type="text" maxlength="60" value="${esc(S.wm.text)}" data-inp="wm-text">
-    <div class="wmpv"><span>ตัวอย่างพื้นที่เอกสาร</span><div class="wmo" data-wm></div></div></div>
-   <div class="cd"><h4>ล็อกแอปด้วยรหัส</h4><p class="hint">รหัส 8 หลักนี้เป็นล็อกบนอุปกรณ์เครื่องนี้ เพื่อกันคนที่หยิบเครื่องของคุณไปเปิดแอป ไม่ได้เข้ารหัสไฟล์ และไม่ใช่รหัสผ่านบัญชี ระบบเก็บเฉพาะค่าแฮชไว้ในเครื่องนี้ ไม่มีรหัสกลางที่ใช้ร่วมกัน</p>
+    <div class="wmpv"><span>ตัวอย่างพื้นที่เอกสาร</span><div class="wmo" data-wm></div></div></div>`}
+   ${demoOnly?'':`<div class="cd"><h4>ล็อกแอปด้วยรหัส</h4><p class="hint">รหัส 8 หลักนี้เป็นล็อกบนอุปกรณ์เครื่องนี้ เพื่อกันคนที่หยิบเครื่องของคุณไปเปิดแอป ไม่ได้เข้ารหัสไฟล์ และไม่ใช่รหัสผ่านบัญชี ระบบเก็บเฉพาะค่าแฮชไว้ในเครื่องนี้ ไม่มีรหัสกลางที่ใช้ร่วมกัน</p>
     <div class="rw"><span>เปิดใช้รหัสล็อกแอป</span>${tg('tg-lock',hasLock(),'เปิดใช้รหัสล็อกแอป')}</div>
     ${hasLock()?`<button class="rw" data-act="lock-change"><span>เปลี่ยนรหัส</span>${ic('chev',18)}</button><button class="rw" data-act="lock-now"><span>ล็อกตอนนี้</span>${ic('lock',18)}</button>
     <label for="la">ล็อกอัตโนมัติเมื่อออกจากแอป</label><select id="la" data-chg="lock-after">${[[0,'ทันที'],[60,'หลัง 1 นาที'],[300,'หลัง 5 นาที']].map(o=>`<option value="${o[0]}" ${S.lockAfter===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>`:''}
-    <div class="rw"><span>ซ่อนภาพบนหน้าหลักจนกว่าจะแตะ<small>แสดงภาพแบบเบลอพร้อมรูปกุญแจ จนกว่าจะแตะ</small></span>${tg('tg-hidepv',S.hidePv,'ซ่อนภาพบนหน้าหลัก')}</div></div>
+    <div class="rw"><span>ซ่อนภาพบนหน้าหลักจนกว่าจะแตะ<small>แสดงภาพแบบเบลอพร้อมรูปกุญแจ จนกว่าจะแตะ</small></span>${tg('tg-hidepv',S.hidePv,'ซ่อนภาพบนหน้าหลัก')}</div></div>`}
    <div class="cd"><h4>หน้าหลัก: แบนเนอร์และประกาศ</h4><p class="hint">แก้ข้อความ แบบแบนเนอร์ และไอคอนประกาศได้เอง บันทึกไว้ในบัญชีของคุณ</p>
      <div class="lb">แบนเนอร์ที่เลื่อนได้ (${BNS().length}/6)</div>${BNS().map((b,i)=>`<button class="rw" data-act="bn-edit" data-i="${i}"><span class="bnsw ${b.tpl in BTPL?b.tpl:'b1'}">${b.img?`<img alt="" data-bnimg="${esc(b.img)}" data-v="${+b.iv||0}">`:''}</span><span>${esc(b.t1)||(b.img?'(แบนเนอร์รูปภาพ)':'(ไม่มีหัวข้อ)')}<small>${b.img?'รูปแบนเนอร์ของฉัน':(BTPL[b.tpl]||BTPL.b1)}</small></span>${ic('edit',18)}</button>`).join('')}
      ${BNS().length<6?`<button class="rw" data-act="bn-edit" data-i="new">${ic('plus',18)}<span>เพิ่มแบนเนอร์</span></button>`:''}
@@ -298,18 +315,18 @@ function R4(){
      <button class="rw" data-act="home-reset-ask"><span>คืนค่าแบนเนอร์และประกาศเริ่มต้น</span>${ic('refresh',18)}</button></div>
    <div class="cd"><h4>การแจ้งเตือน</h4><div class="rw"><span>แสดงจุดแจ้งเตือนที่กระดิ่ง<small>เมื่อมีประกาศใหม่จาก DocPocket</small></span>${tg('tg-badge',S.badge,'แสดงจุดแจ้งเตือน')}</div>
     <label for="xd">เตือนเอกสารใกล้หมดอายุ<small class="sub">ใช้วันหมดอายุที่คุณบันทึกในข้อมูลเอกสาร · แสดงในกระดิ่ง</small></label><select id="xd" data-chg="exp-days">${[[0,'ปิด'],[30,'ล่วงหน้า 30 วัน'],[60,'ล่วงหน้า 60 วัน'],[90,'ล่วงหน้า 90 วัน']].map(o=>`<option value="${o[0]}" ${S.expDays===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div>
-   <div class="cd"><h4>ความเป็นส่วนตัวและบัญชี</h4><p class="hint">${esc(S.user?.email||'')}</p>
+   ${demoOnly?'':`<div class="cd"><h4>ความเป็นส่วนตัวและบัญชี</h4><p class="hint">${esc(S.user?.email||'')}</p>
     <button class="rw" data-act="${S.mfa?'mfa-off':'mfa-on'}"><span>ยืนยันสองขั้นตอน (Authenticator)<small>${S.mfa?'เปิดอยู่ · แตะเพื่อปิด':'ปิดอยู่ · แตะเพื่อเปิด'}</small></span>${ic('chev',18)}</button>
     <a class="rw" href="/privacy.html" target="_blank" rel="noopener"><span>นโยบายความเป็นส่วนตัวและการเก็บรักษาข้อมูล</span>${ic('chev',18)}</a>
     <button class="rw" data-act="export"><span>ดาวน์โหลดข้อมูลของฉัน (JSON)<small>โปรไฟล์ รายการเอกสาร และประวัติ</small></span>${ic('download',18)}</button>
      <button class="rw" data-act="export-zip"><span>ดาวน์โหลดภาพต้นฉบับทั้งหมด (ZIP)<small>ไฟล์ต้นฉบับทุกด้าน เต็มความละเอียด พร้อมไฟล์ข้อมูล JSON</small></span>${ic('download',18)}</button>
     ${S.demo?'':`<button class="rw" data-act="logout-ask"><span>ออกจากระบบ</span>${ic('power',18)}</button>
     <button class="rw dg" data-act="acct-ask"><span>ลบบัญชีและข้อมูลทั้งหมด</span>${ic('trash',18)}</button>`}</div>
-   <div class="cd"><h4>โหมด DEMO (สำหรับนำเสนอ)</h4><p class="hint">แสดงแอปด้วยเอกสารและประวัติสมมติ โดยไม่แตะเอกสารจริงของคุณ ข้อมูลอยู่ในหน่วยความจำของแท็บนี้และหายเมื่อออก</p>${S.demo?`<button class="rw" data-act="demo-menu"><span>เมนู DEMO และลำดับการนำเสนอ</span>${ic('chev',18)}</button><button class="rw" data-act="demo-reset"><span>รีเซ็ตข้อมูลตัวอย่าง</span>${ic('refresh',18)}</button><button class="rw" data-act="demo-exit"><span>ออกจากโหมด DEMO</span>${ic('power',18)}</button>`:`<button class="rw" data-act="demo-start"><span>เปิดโหมด DEMO<small>ใช้ข้อมูลสมมติ ไม่แก้ไขหรือส่งข้อมูลของบัญชีจริง</small></span>${ic('chev',18)}</button>`}</div>
-   <div class="cd"><h4>เกี่ยวกับ DocPocket</h4><div class="brand sm">${LOGO(44)}<div><b>DocPocket</b><p>กระเป๋าเอกสารส่วนตัว · เวอร์ชัน 1.0</p></div></div><p class="nt tl">${ABOUT}</p>${isMock?'<div class="mockb">โหมดทดสอบ (DEMO): ใช้บัญชีและเอกสารสมมติ ข้อมูลอยู่ในแท็บนี้และหายเมื่อรีเฟรช ไม่มีเซิร์ฟเวอร์จริง อย่าอัปโหลดเอกสารจริง</div>':''}</div></div><div class="dfoot">${foot()}</div>`)}
+   <div class="cd"><h4>โหมด DEMO (สำหรับนำเสนอ)</h4><p class="hint">แสดงแอปด้วยเอกสารและประวัติสมมติ โดยไม่แตะเอกสารจริงของคุณ ข้อมูลอยู่ในหน่วยความจำของแท็บนี้และหายเมื่อออก</p>${S.demo?`<button class="rw" data-act="demo-menu"><span>เมนู DEMO และลำดับการนำเสนอ</span>${ic('chev',18)}</button><button class="rw" data-act="demo-reset"><span>รีเซ็ตข้อมูลตัวอย่าง</span>${ic('refresh',18)}</button><button class="rw" data-act="demo-exit"><span>ออกจากโหมด DEMO</span>${ic('power',18)}</button>`:`<button class="rw" data-act="demo-start"><span>เปิดโหมด DEMO<small>ใช้ข้อมูลสมมติ ไม่แก้ไขหรือส่งข้อมูลของบัญชีจริง</small></span>${ic('chev',18)}</button>`}</div>`}
+   ${demoOnly?'':`<div class="cd"><h4>เกี่ยวกับ DocPocket</h4><div class="brand sm">${LOGO(44)}<div><b>DocPocket</b><p>กระเป๋าเอกสารส่วนตัว · เวอร์ชัน 1.0</p></div></div><p class="nt tl">${ABOUT}</p>${isMock?'<div class="mockb">โหมดทดสอบ (DEMO): ใช้บัญชีและเอกสารสมมติ ข้อมูลอยู่ในแท็บนี้และหายเมื่อรีเฟรช ไม่มีเซิร์ฟเวอร์จริง อย่าอัปโหลดเอกสารจริง</div>':''}</div>`}</div><div class="dfoot">${foot()}</div>`)}
 const R=[R0,R1,R2,R3,R4];
 function go(i){
-  if(S.tab===4&&i!==4)keepDraft();
+  if(S.tab===4&&i!==4){keepDraft();S.setOpen=false}
   if(S.tab===2&&i!==2)stopCam();
   S.tab=i;closeSheet();closeViewNow();closeEd();closeDet();closeProf();closeAp();renderHdr();
   $$('.view').forEach((v,j)=>v.classList.toggle('on',j===i));$$('.ni').forEach((b,j)=>{b.classList.toggle('on',j===i);b.toggleAttribute('aria-current',j===i)});
@@ -676,7 +693,8 @@ const A={
   bell(){const ex=expiring();S.seen=ANNS().map(a=>a.id);sv('dp_seen',S.seen);S.expSeen=ex.map(x=>x.d.id+x.d.expires_on);sv('dp_expseen',S.expSeen);renderHdr();
     sheet(`<h3>การแจ้งเตือน</h3>${S.expDays?`<div class="lb">เอกสารใกล้หมดอายุ (ภายใน ${S.expDays} วัน)</div>${ex.length?ex.map(x=>`<button class="rw" data-act="det-open" data-id="${x.d.id}"><span class="ai">${ic('doc',16)}</span><span>${esc(x.d.title)}<small>${x.n<0?`หมดอายุแล้ว ${-x.n} วัน`:x.n===0?'หมดอายุวันนี้':`หมดอายุในอีก ${x.n} วัน`} · ${fmtDate(x.d.expires_on,S.era)}</small></span></button>`).join(''):'<p class="nt tl">ไม่มีเอกสารที่ใกล้หมดอายุ</p>'}`:''}
      <div class="lb">ประกาศ</div>${ANNS().map(a=>`<button class="rw" data-act="ann" data-id="${esc(a.id)}">${annIc(a,'ai2')}<span>${esc(a.t)}<small>${annDate(a)}${a.demo?' · DEMO':''}</small></span></button>`).join('')}`)},
-  power(){sheet(`<h3>ล็อกหรือออกจากระบบ</h3>${hasLock()?`<button class="rw" data-act="lock-now"><span>ล็อกแอปตอนนี้<small>ต้องใส่รหัส 6 หลักเพื่อกลับเข้าใช้</small></span>${ic('lock',20)}</button>`:`<button class="rw" data-act="lock-setup"><span>ตั้งรหัสล็อกแอป<small>ยังไม่ได้ตั้ง · ไปที่ตั้งค่า</small></span>${ic('lock',20)}</button>`}<button class="rw" data-act="logout-ask"><span>ออกจากระบบ</span>${ic('power',20)}</button>`)},
+  power(){if(demoOnly&&S.tab===4&&!S.setOpen){const t=Date.now();spN=t-spT<2500?spN+1:1;spT=t;if(spN>=5){spN=0;S.setOpen=true;R4();$('#v4').scrollTop=0}return}
+    sheet(`<h3>ล็อกหรือออกจากระบบ</h3>${hasLock()?`<button class="rw" data-act="lock-now"><span>ล็อกแอปตอนนี้<small>ต้องใส่รหัส 6 หลักเพื่อกลับเข้าใช้</small></span>${ic('lock',20)}</button>`:`<button class="rw" data-act="lock-setup"><span>ตั้งรหัสล็อกแอป<small>ยังไม่ได้ตั้ง · ไปที่ตั้งค่า</small></span>${ic('lock',20)}</button>`}<button class="rw" data-act="logout-ask"><span>ออกจากระบบ</span>${ic('power',20)}</button>`)},
   'addr-edit'(){closeSheet();go(4);setTimeout(()=>{const f=$('#f3');if(f){f.scrollIntoView({block:'center',behavior:'smooth'});f.focus({preventScroll:true})}},80)},
   noop(){},
   'bn-edit'(d){const L=BNS(),nw=d.i==='new',b=nw?{id:'b'+Date.now().toString(36),tpl:'b1',t1:'',t2:'',t3:'',go:-1}:{...L[+d.i]};dropURL(S.bnEd?.pu);S.bnEd={i:nw?-1:+d.i,b,blob:null,pu:null,rm:false};
