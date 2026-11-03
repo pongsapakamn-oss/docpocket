@@ -893,7 +893,7 @@ async function afterAuth(fresh){
   try{await Promise.all([loadProfile(),loadDocs(),loadHist(),loadMfa()]);await loadAvatar()}catch(e){shell(`${brand('')}<p class="err">โหลดข้อมูลไม่สำเร็จ: ${esc(e.message)}</p><button class="bt" data-act="logout">ออกจากระบบ</button>`);return}
   if(fresh)await log('login');
   $('#auth')?.remove();$('#app').classList.add('rdy');S.rv=false;go(0);initBack();
-  if(!fresh&&hasLock())lockShow('unlock')}
+  if(!fresh&&!demoOnly&&hasLock())lockShow('unlock')}  // public DEMO build: no full-screen password when the app opens (the blurred card still asks for its code)
 
 /* Back button / swipe-back (Android, browsers): close the top overlay or return to Home instead of leaving the app.
    One extra history entry is kept as a sentinel; at Home with nothing open, Back leaves the app as usual. */
@@ -924,7 +924,7 @@ function boot(){
   setInterval(()=>{if(S.hidePv&&S.rv&&!S.view&&(Date.now()-S.act)/1000>=Math.max(30,S.lockAfter)){S.rv=false;closeProf();if(S.tab===0)R0()}},5000);
   document.addEventListener('visibilitychange',()=>{
     if(document.hidden){S.hideAt=Date.now();if(S.hidePv&&S.rv){S.rv=false;closeProf();if(S.tab===0&&!S.view)R0()}if(hasLock())$('#app').classList.add('priv');if(S.tab===2&&S.scan.cam){stopCam();R2()}}
-    else{$('#app').classList.remove('priv');if(hasLock()&&S.hideAt&&(Date.now()-S.hideAt)/1000>=S.lockAfter)lockNow()}});
+    else{$('#app').classList.remove('priv');if(!demoOnly&&hasLock()&&S.hideAt&&(Date.now()-S.hideAt)/1000>=S.lockAfter)lockNow()}});
   addEventListener('popstate',()=>{if(S.leaving||!S.hs)return;if(backNav()){try{history.pushState({dp:1},'')}catch(e){}}else{S.leaving=true;history.back()}});
   $('#lock').addEventListener('click',e=>{if(e.target.id==='lock'&&L&&L.cancel&&!L.forgot)lockHide()}); // tap the dimmed area to cancel
   $('#bd').addEventListener('click',closeSheet);
