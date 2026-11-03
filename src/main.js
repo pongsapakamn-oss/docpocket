@@ -11,6 +11,8 @@ const ABOUT='DocPocket เป็นแอปจัดระเบียบเอ
 const SIDE={front:'ด้านหน้า',back:'ด้านหลัง'};
 const CATS=['บัตร / ใบอนุญาต','สัญญา','การเงิน / ใบเสร็จ','การศึกษา','สุขภาพ','ทรัพย์สิน / ยานพาหนะ','อื่น ๆ'];
 const DEF_WM={on:true,op:.35,pos:'tile',text:'DocPocket · สำเนาส่วนตัว'};
+// public DEMO build: no watermark over the card on screen (the Settings switch is removed there), but saved copies keep theirs
+const WMV=()=>demoOnly?{...S.wm,on:false}:S.wm,WMC=()=>demoOnly?{...S.wm,on:true}:S.wm;
 const ANN_DEF=[
  {id:'a1',demo:true,ic:'logo',t:'ปรับปรุงระบบบัตรดิจิทัล',d:'2026-10-28',s:'ระบบจะปิดปรับปรุงชั่วคราวในวันอาทิตย์ เวลา 01:00 – 03:00 น. ขออภัยในความไม่สะดวก'},
  {id:'a2',demo:true,ic:'logo',t:'เพิ่มบริการใหม่ในเมนูบริการ',d:'2026-10-27',s:'ตรวจสอบสิทธิ์และเอกสารของคุณได้สะดวกขึ้น เพียงแตะที่เมนูบริการจากหน้าแรก'},
@@ -106,7 +108,7 @@ function hydrate(root=document){
       el.onerror=()=>{if(el.dataset.fb)return fail('decode');el.dataset.fb='1';imgData(im,t==='t').then(set).catch(fail)};el.src=u};
     imgUrl(im,t==='t').then(set).catch(e=>t==='t'?imgUrl(im,false).then(set).catch(fail):fail(e))});
   $$('[data-bnimg]:not([data-hy])',root).forEach(el=>{el.dataset.hy='1';bnUrl(el.dataset.bnimg,el.dataset.v).then(u=>{if(el.isConnected){el.onload=()=>el.classList.add('ok');el.src=u}}).catch(e=>console.error('banner image',e))});
-  $$('[data-wm]',root).forEach(el=>applyWM(el,S.wm))}
+  $$('[data-wm]',root).forEach(el=>applyWM(el,WMV()))}
 const fillCls=el=>{if(el.classList.contains('pimg')||el.hasAttribute('data-vimg'))el.classList.toggle('fill',Math.abs(el.naturalWidth/el.naturalHeight/CARD-1)<=.12)}; // card-shaped pictures fill the frame edge to edge
 const BNIMG=new Map();
 async function bnUrl(path,v){const k=path+'|'+(v||0);if(!BNIMG.has(k)){const p=fetchBlob(path).then(b=>objURL(b));BNIMG.set(k,p);p.catch(()=>BNIMG.delete(k))}return BNIMG.get(k)}
@@ -349,7 +351,7 @@ function drawView(){
   $('#vwr').innerHTML=`<div class="vt"><button class="zc" data-act="view-close" aria-label="กลับหน้าหลัก">${ic('chev',26).replace('<svg','<svg class="rv"')}</button><button class="zc" data-act="view-flip" aria-label="พลิกเอกสาร">${ic('flip',26)}</button></div>
    <div class="vstage" id="vstage"><div class="vbox" id="vbox"><div class="vflip${v.side==='back'?' f':''}" id="vflip">${face('front')}${face('back')}</div><div class="wmo" data-wm></div></div></div>
 `;
-  $$('[data-wm]',$('#vwr')).forEach(el=>applyWM(el,S.wm));
+  $$('[data-wm]',$('#vwr')).forEach(el=>applyWM(el,WMV()));
   $$('[data-vimg]',$('#vwr')).forEach(el=>{const im=d.images[el.dataset.vimg];imgUrl(im,false).then(u=>{if(S.view===v){el.onload=()=>fillCls(el);el.src=u}}).catch(()=>toast('เปิดภาพไม่สำเร็จ'))});
   fitV()}
 function fitV(){const v=S.view,b=$('#vbox'),st=$('#vstage');if(!v||!b||!st)return;
@@ -375,8 +377,8 @@ function closeViewNow(){
   if(S.view&&S.tab===0&&S.view.id===S.selId){const c=$('.card3d');if(c){c.style.transition='none';c.classList.toggle('f',S.flip);void c.offsetWidth;c.style.transition=''}}
   S.view=null;$('#app').classList.remove('v-open');$('#vwr').classList.remove('on')}
 async function copyWM(id,side){const v=id?{id,side}:S.view;if(!v)return;const d=docById(v.id),im=d?.images[v.side];if(!im)return toast(`ยังไม่มีภาพ${SIDE[v.side]}`);toast('กำลังสร้างสำเนา…');
-  try{const c=await watermarkedCopy(await fetchBlob(im.path),im.rotation,im.crop,S.wm);saveBlob(c,`${safeName(d.title)}-${v.side}-${S.wm.on?'watermarked':'copy'}.jpg`);
-    await log('copy_saved',`${d.title} · ${SIDE[v.side]}`);toast(S.wm.on?'บันทึกสำเนาลายน้ำแล้ว (ต้นฉบับไม่ถูกแก้ไข)':'บันทึกสำเนาแล้ว (ลายน้ำปิดอยู่)')}catch(e){toast(e.message)}}
+  try{const c=await watermarkedCopy(await fetchBlob(im.path),im.rotation,im.crop,WMC());saveBlob(c,`${safeName(d.title)}-${v.side}-${WMC().on?'watermarked':'copy'}.jpg`);
+    await log('copy_saved',`${d.title} · ${SIDE[v.side]}`);toast(WMC().on?'บันทึกสำเนาลายน้ำแล้ว (ต้นฉบับไม่ถูกแก้ไข)':'บันทึกสำเนาแล้ว (ลายน้ำปิดอยู่)')}catch(e){toast(e.message)}}
 async function dlOrig(id,side){const d=docById(id),im=d?.images[side];if(!im)return;try{saveBlob(await fetchBlob(im.path),`${safeName(d.title)}-${side}.${ext(im.mime)}`)}catch(e){toast(e.message)}}
 
 /* ===================== scan / camera ===================== */
@@ -794,7 +796,7 @@ const C={
   'scan-file':el=>{const f=el.files[0];el.value='';if(f){stopCam();setFile(f)}},
   avatar:el=>{const f=el.files[0];el.value='';if(f)setAvatar(f)},
   'lock-after':el=>{S.lockAfter=+el.value;sv('dp_lockafter',S.lockAfter)},
-  'wm-pos':el=>{S.wm.pos=el.value;sv('dp_wm',S.wm);$$('[data-wm]').forEach(e=>applyWM(e,S.wm))}};
+  'wm-pos':el=>{S.wm.pos=el.value;sv('dp_wm',S.wm);$$('[data-wm]').forEach(e=>applyWM(e,WMV()))}};
 function applyTheme(){const t=S.theme==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):S.theme;document.documentElement.dataset.theme=t;
   $('meta[name=theme-color]')?.setAttribute('content',t==='dark'?'#11132f':'#303891')}
 function bnRead(){const f=$('#bnf');if(!f)return null;const g=n=>f.elements[n]?.value??'',ln=v=>v.replace(/\r/g,'').split('\n').slice(0,2).join('\n').trim().slice(0,90);
@@ -842,8 +844,8 @@ const I={
   'doc-q':t=>{S.q=t.value;dfilter()},
   'ed-zoom':el=>ED&&edZoom(+el.value),
   'scan-title':el=>{S.scan.title=el.value},
-  'wm-op':el=>{S.wm.op=+el.value;sv('dp_wm',S.wm);$$('[data-wm]').forEach(e=>applyWM(e,S.wm))},
-  'wm-text':el=>{S.wm.text=el.value.slice(0,60)||DEF_WM.text;sv('dp_wm',S.wm);$$('[data-wm]').forEach(e=>applyWM(e,S.wm))}};
+  'wm-op':el=>{S.wm.op=+el.value;sv('dp_wm',S.wm);$$('[data-wm]').forEach(e=>applyWM(e,WMV()))},
+  'wm-text':el=>{S.wm.text=el.value.slice(0,60)||DEF_WM.text;sv('dp_wm',S.wm);$$('[data-wm]').forEach(e=>applyWM(e,WMV()))}};
 
 /* ===================== auth ===================== */
 function shell(h){let a=$('#auth');if(!a){a=document.createElement('div');a.id='auth';a.className='auth';$('#app').append(a)}a.innerHTML=h;return a}
