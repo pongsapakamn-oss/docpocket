@@ -653,7 +653,7 @@ async function enterDemo(o){ // o===true: started by the ?demo link at launch ->
   if(S.demoBusy)return;S.demoBusy=true;const again=S.demo,quiet=o===true;if(!quiet)toast('กำลังเตรียมโหมด DEMO…');
   try{const m=await import('./mock.js');
     stopCam();lockHide();closeSheet();closeViewNow();closeEd();closeDet();closeProf();closeAp();demoClean();
-    demoSb=m.sb;if(!await m.seedDemo())throw new Error('เตรียมข้อมูลตัวอย่างไม่สำเร็จ');
+    demoSb=m.sb;if(!await m.seedDemo({persist:demoOnly,reset:demoOnly&&!quiet}))throw new Error('เตรียมข้อมูลตัวอย่างไม่สำเร็จ');
     S.demoUid=(await demoSb.auth.getUser()).data?.user?.id;
     Object.assign(S,{demo:true,hidePv:true,user:null,profile:{},docs:[],hist:[],mfa:false,selId:null,flip:false,draft:null,q:'',cat:'',dst:'all',hf:'all',hn:HPAGE,tab:0,rv:false,lastSel:null,scan:newScan(),ci:0,view:null,det:null,detEdit:false});
     dropURL(S.avatar);S.avatar='';lruClear(TH);lruClear(FU);

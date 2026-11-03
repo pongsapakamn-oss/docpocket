@@ -6,6 +6,15 @@ let session=null,AID=1,MFA={};
 const uuid=()=>crypto.randomUUID?crypto.randomUUID():'10000000-1000-4000-8000-100000000000'.replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
 const wait=()=>new Promise(r=>setTimeout(r,20)),emit=ev=>LS.forEach(f=>f(ev,session)),c=x=>({...x});
 const bad=m=>({message:m});
+/* ===== optional persistence (public DEMO build only): keeps the demo data on this device in IndexedDB so it survives closing the app ===== */
+let PERSIST=false,saveT=0;
+const IDB=()=>new Promise((res,rej)=>{const r=indexedDB.open('dp_demo',1);r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('meta');d.createObjectStore('files')};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const idb=async(store,mode,fn)=>{const d=await IDB();return new Promise((res,rej)=>{const t=d.transaction(store,mode),q=fn(t.objectStore(store));t.oncomplete=()=>{d.close();res(q&&q.result)};t.onerror=t.onabort=()=>{d.close();rej(t.error)}})};
+const saveState=()=>{if(!PERSIST)return;clearTimeout(saveT);saveT=setTimeout(()=>{const u=session&&USERS.find(x=>x.id===session.user.id);idb('meta','readwrite',s=>s.put({v:1,DB,AID,MFA,user:u||null},'state')).catch(()=>{})},250)};
+const putFile=(p,b)=>{if(PERSIST)idb('files','readwrite',s=>s.put(b,p)).catch(()=>{})};
+const delFile=p=>{if(PERSIST)idb('files','readwrite',s=>s.delete(p)).catch(()=>{})};
+const getFile=async p=>FILES.get(p)||(PERSIST?await idb('files','readonly',s=>s.get(p)).catch(()=>null):null)||null;
+export async function wipeDemoStore(){try{await idb('meta','readwrite',s=>s.clear());await idb('files','readwrite',s=>s.clear())}catch(e){}}
 function fill(t,x){const n={...x},now=new Date().toISOString();
   if(t==='activity'){n.id=AID++;n.user_id=n.user_id||session.user.id;n.created_at=n.created_at||now}
   else if(t==='document_images'){n.id=n.id||uuid();n.user_id=n.user_id||session.user.id;n.rotation=n.rotation??0;n.updated_at=n.updated_at||now}
@@ -29,6 +38,7 @@ function from(t){
       else if(op==='upsert'){const ks=conf.split(',');out=[];for(const x of [].concat(pl)){const ex=DB[t].find(r=>ks.every(k=>r[k]===x[k]));if(ex){Object.assign(ex,x);out.push(c(ex))}else{const n=fill(t,x);DB[t].push(n);out.push(c(n))}}}
       else if(op==='update'){const rs=rows();rs.forEach(r=>Object.assign(r,pl));out=rs.map(c)}
       else{const rs=rows();DB[t]=DB[t].filter(r=>!rs.includes(r));if(t==='documents')rs.forEach(d=>{DB.document_images=DB.document_images.filter(i=>i.document_id!==d.id)});out=rs.map(c)}
+      if(op!=='select')saveState();
       if(ord)out.sort((a,b2)=>(a[ord[0]]>b2[ord[0]]?1:a[ord[0]]<b2[ord[0]]?-1:0)*(ord[1]?1:-1));
       if(lim)out=out.slice(0,lim);
       if(one){const r=out[0]||null;if(one==='single'&&!r)return{data:null,error:bad('No rows')};return{data:r,error:null}}
@@ -56,10 +66,10 @@ export const sb={
       verify:async({code})=>{if(code!=='123456')return{data:null,error:bad('Invalid TOTP code (ทดสอบ: ใช้ 123456)')};MFA[session.user.id]={verified:true};session.aal='aal2';return{data:{},error:null}},
       unenroll:async()=>{MFA[session.user.id]={verified:false};session.aal='aal1';return{data:{},error:null}}}},
   storage:{from:()=>({
-    upload:async(path,blob,o={})=>{await wait();if(FILES.has(path)&&!o.upsert)return{data:null,error:bad('The resource already exists')};FILES.set(path,blob);return{data:{path},error:null}},
-    createSignedUrl:async path=>{await wait();const b=FILES.get(path);return b?{data:{signedUrl:URL.createObjectURL(b)},error:null}:{data:null,error:bad('Object not found')}},
-    download:async path=>{await wait();const b=FILES.get(path);return b?{data:b,error:null}:{data:null,error:bad('Object not found')}},
-    remove:async ps=>{ps.forEach(p=>FILES.delete(p));return{data:[],error:null}}})},
+    upload:async(path,blob,o={})=>{await wait();if(FILES.has(path)&&!o.upsert)return{data:null,error:bad('The resource already exists')};FILES.set(path,blob);putFile(path,blob);return{data:{path},error:null}},
+    createSignedUrl:async path=>{await wait();const b=await getFile(path);return b?{data:{signedUrl:URL.createObjectURL(b)},error:null}:{data:null,error:bad('Object not found')}},
+    download:async path=>{await wait();const b=await getFile(path);return b?{data:b,error:null}:{data:null,error:bad('Object not found')}},
+    remove:async ps=>{ps.forEach(p=>{FILES.delete(p);delFile(p)});return{data:[],error:null}}})},
   rpc:async name=>{await wait();if(name!=='delete_my_account')return{error:bad('unknown rpc')};const id=session.user.id;
     for(const t of Object.keys(DB))DB[t]=DB[t].filter(r=>(r.user_id||r.id)!==id);const i=USERS.findIndex(u=>u.id===id);if(i>-1)USERS.splice(i,1);session=null;return{data:null,error:null}}
 };
@@ -106,7 +116,15 @@ function dropUser(id){for(const t of Object.keys(DB))DB[t]=DB[t].filter(r=>(r.us
 const dayStr=n=>{const d=new Date();d.setDate(d.getDate()+n);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
 const ago=h=>new Date(Date.now()-h*36e5).toISOString();
 export const DEMO_EMAIL='presenter@docpocket.demo';
-export async function seedDemo(){
+async function restoreDemo(){try{const st=await idb('meta','readonly',s=>s.get('state'));
+  if(!st||st.v!==1||!st.user||!st.DB||!(st.DB.profiles||[]).length)return false;
+  for(const t of Object.keys(DB))DB[t]=st.DB[t]||[];AID=st.AID||1;MFA=st.MFA||{};USERS.push(st.user);
+  session={user:{id:st.user.id,email:st.user.email},aal:'aal1'};DEMO_UID=st.user.id;emit('SIGNED_IN');return true}catch(e){return false}}
+// opts.persist: keep the data on this device and reload it next time; opts.reset: throw the saved copy away first
+export async function seedDemo(opts={}){
+  PERSIST=!!opts.persist&&typeof indexedDB!=='undefined';
+  if(PERSIST){try{navigator.storage?.persist?.()}catch(e){}
+    if(opts.reset)await wipeDemoStore();else if(await restoreDemo())return true}
   if(DEMO_UID)dropUser(DEMO_UID);
   // never wait long for the web font (in-app browsers can stall on it): draw with whatever is available after 1.2 s
   try{await Promise.race([Promise.all([document.fonts?.load?.('700 54px Prompt'),document.fonts?.load?.('500 30px Prompt')]),new Promise(r=>setTimeout(r,1200))])}catch(e){}
@@ -142,4 +160,4 @@ export async function seedDemo(){
     ['deleted','ใบสมัครตัวอย่าง (ลบแล้ว)',14*24],['copy_saved','ประกันสุขภาพตัวอย่าง · '+F,18*24],['login','',20*24]];
   for(let i=0;i<14;i++)A.push(['viewed',['สัญญาเช่าตัวอย่าง','ทะเบียนรถตัวอย่าง','ประกันสุขภาพตัวอย่าง'][i%3]+' · '+F,100+i*21]);
   for(const [kind,detail,h] of A)await sb.from('activity').insert({kind,detail,created_at:ago(h)});
-  return true}
+  saveState();return true}
