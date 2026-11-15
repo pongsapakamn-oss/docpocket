@@ -171,8 +171,8 @@ function R0(){
     <div class="nh"><span>ประกาศทั้งหมด</span><button data-act="ann-more">ทั้งหมด ›</button></div>
     <div class="nl">${ANNS().map(a=>annCard(a,true)).join('')}</div>${(S.demo||isMock)&&!demoOnly?'<div class="dstrip" role="note">DEMO VERSION</div>':''}</div>
    <div class="dfoot">${foot(true)}</div>`);
-  const fw=$('#v0 .flipw');if(fw&&n>1){let sx=0,sy=0;fw.addEventListener('pointerdown',e=>{sx=e.clientX;sy=e.clientY},{passive:true});
-    fw.addEventListener('pointerup',e=>{const dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)>48&&Math.abs(dx)>Math.abs(dy)*1.5){S.swiped=Date.now();A[dx<0?'doc-next':'doc-prev']()}},{passive:true})}
+  const fw=$('#v0 .flipw');if(fw&&(n>1||demoOnly)){let sx=0,sy=0;fw.addEventListener('pointerdown',e=>{sx=e.clientX;sy=e.clientY},{passive:true});
+    fw.addEventListener('pointerup',e=>{const dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)>48&&Math.abs(dx)>Math.abs(dy)*1.5){S.swiped=Date.now();if(!demoOnly)A[dx<0?'doc-next':'doc-prev']()} /* public build: a swipe never changes (or flips) the card */},{passive:true})}
   // looping carousel: [last clone, ...banners, first clone], active banner centred with both neighbours peeking
   const c=$('#cr'),nb=BL.length,K=[...c.children],near=()=>{let j=0,dd=1e9;K.forEach((e,i)=>{const x=Math.abs(crX(c,e)-c.scrollLeft);if(x<dd){dd=x;j=i}});return j};
   const home=()=>{c.scrollLeft=crX(c,K[S.ci+1])};home();requestAnimationFrame(home);let st;
@@ -341,7 +341,8 @@ function rerender(){R[S.tab]()}
 function openView(id,side){
   const d=docById(id);if(!d)return;if(!d.images.front&&!d.images.back){toast('เอกสารนี้ยังไม่มีภาพ');return}
   if(!side)side=S.flip?'back':'front';
-  S.view={id,side,z:1,tx:0,ty:0,ptr:new Map(),d0:0,z0:1};closeSheet();$('#app').classList.add('v-open');drawView();$('#vwr').classList.add('on');fitV();vAnim(true);
+  S.view={id,side,z:1,tx:0,ty:0,ptr:new Map(),d0:0,z0:1};closeSheet();$('#app').classList.add('v-open');drawView();const w=$('#vwr');if(demoOnly)w.classList.add('vnow');w.classList.add('on');fitV();
+  if(demoOnly){void w.offsetWidth;setTimeout(()=>w.classList.remove('vnow'),80)}else vAnim(true); // public build: the full view pops up at once, no fade and no grow-from-card movement
   log('viewed',`${d.title} · ${SIDE[side]}`)}
 /* Expanded preview: the card is shown large (rotated to landscape on a portrait phone, like the reference),
    with a back button, a flip button and a real 3D flip between the two independent images. */
@@ -653,7 +654,7 @@ async function enterDemo(o){ // o===true: started by the ?demo link at launch ->
   if(S.demoBusy)return;S.demoBusy=true;const again=S.demo,quiet=o===true;if(!quiet)toast('กำลังเตรียมโหมด DEMO…');
   try{const m=await import('./mock.js');
     stopCam();lockHide();closeSheet();closeViewNow();closeEd();closeDet();closeProf();closeAp();demoClean();
-    demoSb=m.sb;if(!await m.seedDemo({persist:demoOnly,reset:demoOnly&&!quiet}))throw new Error('เตรียมข้อมูลตัวอย่างไม่สำเร็จ');
+    demoSb=m.sb;if(!await m.seedDemo({persist:demoOnly,reset:demoOnly&&!quiet,empty:demoOnly}))throw new Error('เตรียมข้อมูลตัวอย่างไม่สำเร็จ');
     S.demoUid=(await demoSb.auth.getUser()).data?.user?.id;
     Object.assign(S,{demo:true,hidePv:true,user:null,profile:{},docs:[],hist:[],mfa:false,selId:null,flip:false,draft:null,q:'',cat:'',dst:'all',hf:'all',hn:HPAGE,tab:0,rv:false,lastSel:null,scan:newScan(),ci:0,view:null,det:null,detEdit:false});
     dropURL(S.avatar);S.avatar='';lruClear(TH);lruClear(FU);
@@ -668,7 +669,11 @@ function demoMenu(){sheet(`<h3>โหมด DEMO</h3><p>ใช้สำหรั
 
 /* ===================== actions (event delegation; no inline handlers) ===================== */
 const A={
-  goto:d=>go(+d.arg),flip(){if(Date.now()-(S.swiped||0)<400)return;S.flip=!S.flip;$('.card3d')?.classList.toggle('f',S.flip)},
+  goto:d=>go(+d.arg),flip(d,t){if(Date.now()-(S.swiped||0)<400)return;
+    if(demoOnly&&t&&t.classList&&t.classList.contains('card3d')){ // double-tap the card = open full view, without flipping; a single tap flips after a short wait
+      if(S.tapTm){clearTimeout(S.tapTm);S.tapTm=0;A['open-view']();return}
+      S.tapTm=setTimeout(()=>{S.tapTm=0;S.flip=!S.flip;$('.card3d')?.classList.toggle('f',S.flip)},280);return}
+    S.flip=!S.flip;$('.card3d')?.classList.toggle('f',S.flip)},
   'doc-prev'(){const i=S.docs.findIndex(d=>d.id===S.selId);S.selId=S.docs[(i-1+S.docs.length)%S.docs.length].id;S.flip=false;R0()},
   'doc-next'(){const i=S.docs.findIndex(d=>d.id===S.selId);S.selId=S.docs[(i+1)%S.docs.length].id;S.flip=false;R0()},
   'open-view'(){S.rv=true;const d=curDoc();d?openView(d.id,S.flip?'back':'front'):toast('ยังไม่มีเอกสาร ลองสแกนเอกสารแรกของคุณ')},

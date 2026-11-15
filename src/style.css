@@ -667,3 +667,6 @@ html[data-theme=dark] .hl>.hr{background:#171a45;border-color:#2a2f6b}html[data-
 
 /* footer line: plain grey text on white (it used to be a navy block with faint text under the page) */
 .dfoot{background:#fff;color:#8a90b0;margin:0 -16px calc(-96px - env(safe-area-inset-bottom,0px));padding:14px 18px calc(110px + env(safe-area-inset-bottom,0px))}
+
+/* public build: the full view appears instantly (the class is removed right after, so closing still fades) */
+#vwr.vnow{transition:none}

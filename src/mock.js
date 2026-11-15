@@ -10,7 +10,7 @@ const bad=m=>({message:m});
 let PERSIST=false,saveT=0;
 const IDB=()=>new Promise((res,rej)=>{const r=indexedDB.open('dp_demo',1);r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('meta');d.createObjectStore('files')};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
 const idb=async(store,mode,fn)=>{const d=await IDB();return new Promise((res,rej)=>{const t=d.transaction(store,mode),q=fn(t.objectStore(store));t.oncomplete=()=>{d.close();res(q&&q.result)};t.onerror=t.onabort=()=>{d.close();rej(t.error)}})};
-const saveState=()=>{if(!PERSIST)return;clearTimeout(saveT);saveT=setTimeout(()=>{const u=session&&USERS.find(x=>x.id===session.user.id);idb('meta','readwrite',s=>s.put({v:1,DB,AID,MFA,user:u||null},'state')).catch(()=>{})},250)};
+const saveState=()=>{if(!PERSIST)return;clearTimeout(saveT);saveT=setTimeout(()=>{const u=session&&USERS.find(x=>x.id===session.user.id);idb('meta','readwrite',s=>s.put({v:1,m:2,DB,AID,MFA,user:u||null},'state')).catch(()=>{})},250)};
 const putFile=(p,b)=>{if(PERSIST)idb('files','readwrite',s=>s.put(b,p)).catch(()=>{})};
 const delFile=p=>{if(PERSIST)idb('files','readwrite',s=>s.delete(p)).catch(()=>{})};
 const getFile=async p=>FILES.get(p)||(PERSIST?await idb('files','readonly',s=>s.get(p)).catch(()=>null):null)||null;
@@ -116,15 +116,19 @@ function dropUser(id){for(const t of Object.keys(DB))DB[t]=DB[t].filter(r=>(r.us
 const dayStr=n=>{const d=new Date();d.setDate(d.getDate()+n);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
 const ago=h=>new Date(Date.now()-h*36e5).toISOString();
 export const DEMO_EMAIL='presenter@docpocket.demo';
-async function restoreDemo(){try{const st=await idb('meta','readonly',s=>s.get('state'));
+async function restoreDemo(opts={}){try{const st=await idb('meta','readonly',s=>s.get('state'));
   if(!st||st.v!==1||!st.user||!st.DB||!(st.DB.profiles||[]).length)return false;
   for(const t of Object.keys(DB))DB[t]=st.DB[t]||[];AID=st.AID||1;MFA=st.MFA||{};USERS.push(st.user);
-  session={user:{id:st.user.id,email:st.user.email},aal:'aal1'};DEMO_UID=st.user.id;emit('SIGNED_IN');return true}catch(e){return false}}
-// opts.persist: keep the data on this device and reload it next time; opts.reset: throw the saved copy away first
+  if(opts.empty&&st.m!==2){ // one-time clean-up of a copy saved before 'start empty': drop the sample documents, their pictures and the sample activity
+    const smp=new Set(DB.documents.filter(d=>String(d.doc_number||'').startsWith('SAMPLE-')).map(d=>d.id));
+    for(const im of DB.document_images)if(smp.has(im.document_id)){delFile(im.path);delFile(im.path+'.thumb')}
+    DB.documents=DB.documents.filter(d=>!smp.has(d.id));DB.document_images=DB.document_images.filter(i=>!smp.has(i.document_id));DB.activity=[]}
+  session={user:{id:st.user.id,email:st.user.email},aal:'aal1'};DEMO_UID=st.user.id;emit('SIGNED_IN');if(opts.empty&&st.m!==2)saveState();return true}catch(e){return false}}
+// opts.persist: keep the data on this device and reload it next time; opts.reset: throw the saved copy away first; opts.empty: start with no sample documents
 export async function seedDemo(opts={}){
   PERSIST=!!opts.persist&&typeof indexedDB!=='undefined';
   if(PERSIST){try{navigator.storage?.persist?.()}catch(e){}
-    if(opts.reset)await wipeDemoStore();else if(await restoreDemo())return true}
+    if(opts.reset)await wipeDemoStore();else if(await restoreDemo(opts))return true}
   if(DEMO_UID)dropUser(DEMO_UID);
   // never wait long for the web font (in-app browsers can stall on it): draw with whatever is available after 1.2 s
   try{await Promise.race([Promise.all([document.fonts?.load?.('700 54px Prompt'),document.fonts?.load?.('500 30px Prompt')]),new Promise(r=>setTimeout(r,1200))])}catch(e){}
@@ -145,7 +149,7 @@ export async function seedDemo(opts={}){
       f:['ผู้เช่า: สมหญิง ตัวอย่างดี','เลขที่สัญญา: SAMPLE-0002','ระยะเวลา: (สมมติ)']},
     {t:'ประกันสุขภาพตัวอย่าง',c:'สุขภาพ',n:'SAMPLE-0003',is:-380,ex:-12,age:30,hue:G,
       f:['ผู้เอาประกัน: สมหญิง ตัวอย่างดี','เลขที่: SAMPLE-0003','แผน: ตัวอย่าง'],b:['เงื่อนไข: (สมมติ)','หมายเหตุ: ไม่ใช่เอกสารจริง']}];
-  for(const d of docs){
+  for(const d of (opts.empty?[]:docs)){
     const id=uuid(),created=ago(d.age*24);
     await sb.from('documents').insert({id,user_id:uid,title:d.t,category:d.c,holder_name:'สมหญิง ตัวอย่างดี',doc_number:d.n,issued_on:d.is!=null?dayStr(d.is):null,expires_on:d.ex!=null?dayStr(d.ex):null,note:d.note||null,created_at:created,updated_at:created});
     for(const [side,rows] of [['front',d.f],['back',d.b]]){if(!rows)continue;
@@ -159,5 +163,5 @@ export async function seedDemo(opts={}){
     ['replaced','สัญญาเช่าตัวอย่าง · '+F+' · ปรับภาพ',75],['profile_updated','เปลี่ยนรูปโปรไฟล์',80],['uploaded','ใบเสร็จค่าไฟตัวอย่าง · '+F,9*24],['uploaded','ใบรับรองการศึกษาตัวอย่าง · '+F,12*24],
     ['deleted','ใบสมัครตัวอย่าง (ลบแล้ว)',14*24],['copy_saved','ประกันสุขภาพตัวอย่าง · '+F,18*24],['login','',20*24]];
   for(let i=0;i<14;i++)A.push(['viewed',['สัญญาเช่าตัวอย่าง','ทะเบียนรถตัวอย่าง','ประกันสุขภาพตัวอย่าง'][i%3]+' · '+F,100+i*21]);
-  for(const [kind,detail,h] of A)await sb.from('activity').insert({kind,detail,created_at:ago(h)});
+  if(!opts.empty)for(const [kind,detail,h] of A)await sb.from('activity').insert({kind,detail,created_at:ago(h)});
   saveState();return true}
