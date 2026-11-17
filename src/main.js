@@ -1,6 +1,10 @@
 import '@fonts';
 import {PH_PHOTO} from './placeholder.js';
 import {sb as SB0,configured,isMock,seed,demoOnly} from '@backend';
+import {inject} from '@vercel/analytics';
+
+// Initialize Vercel Web Analytics
+inject();
 // DEMO mode swaps this for an in-memory fake (see enterDemo): while it is on nothing is sent to the real backend
 let demoSb=null;const sb=new Proxy({},{get:(_,k)=>(demoSb||SB0)[k]});
 import {$,$$,esc,ls,sv,CARD,detectCard,cardCrop,smartCrop,digits,idNumberOk,fmtId,fmtMember,DEMO_CARD,fmtDate,fmtDT,TMF,yr,validDate,checkFile,prepImage,uid,ext,safeName,makeThumb,processed,previewCanvas,bitmap,squareAvatar,applyWM,WMPOS,watermarkedCopy,saveBlob,lru,lruClear,LIM,zipStore} from './lib.js';
